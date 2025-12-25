@@ -1,0 +1,627 @@
+{
+  "version": "clean_v1",
+  "workouts": [
+    {
+      "id": "hiit_tabata",
+      "cat": "HIIT",
+      "variant": "tabata",
+      "title": "Tabata HIIT",
+      "guide": "pace",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 300,
+          "spdKey": "easy",
+          "spdOffset": 0
+        },
+        {
+          "repeat": 8,
+          "block": [
+            {
+              "type": "work",
+              "name": "Sprint",
+              "sec": 20,
+              "spdKey": "hard"
+            },
+            {
+              "type": "rest",
+              "name": "Recuperación",
+              "sec": 10,
+              "spdKey": "easy"
+            }
+          ]
+        },
+        {
+          "type": "cool",
+          "name": "Vuelta a la calma",
+          "sec": 240,
+          "spdKey": "easy"
+        }
+      ],
+      "type": "tabata",
+      "params": {
+        "workSec": 20,
+        "restSec": 10,
+        "roundsPerSet": 8,
+        "setRestSec": 120
+      },
+      "intensity": "high",
+      "goal": "vo2max",
+      "minLevel": 2,
+      "maxLevel": 2
+    },
+    {
+      "id": "hiit_pyramid",
+      "cat": "HIIT",
+      "variant": "pyramid",
+      "title": "Piramidal HIIT",
+      "guide": "pace",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 360,
+          "spdKey": "easy"
+        },
+        {
+          "type": "work",
+          "name": "1 min fuerte",
+          "sec": 60,
+          "spdKey": "hard"
+        },
+        {
+          "type": "rest",
+          "name": "1 min suave",
+          "sec": 60,
+          "spdKey": "easy"
+        },
+        {
+          "type": "work",
+          "name": "2 min fuerte",
+          "sec": 120,
+          "spdKey": "hard"
+        },
+        {
+          "type": "rest",
+          "name": "2 min suave",
+          "sec": 120,
+          "spdKey": "easy"
+        },
+        {
+          "type": "work",
+          "name": "3 min fuerte",
+          "sec": 180,
+          "spdKey": "hard"
+        },
+        {
+          "type": "rest",
+          "name": "3 min suave",
+          "sec": 180,
+          "spdKey": "easy"
+        },
+        {
+          "type": "work",
+          "name": "2 min fuerte",
+          "sec": 120,
+          "spdKey": "hard"
+        },
+        {
+          "type": "rest",
+          "name": "2 min suave",
+          "sec": 120,
+          "spdKey": "easy"
+        },
+        {
+          "type": "work",
+          "name": "1 min fuerte",
+          "sec": 60,
+          "spdKey": "hard"
+        },
+        {
+          "type": "rest",
+          "name": "1 min suave",
+          "sec": 60,
+          "spdKey": "easy"
+        },
+        {
+          "type": "cool",
+          "name": "Vuelta a la calma",
+          "sec": 240,
+          "spdKey": "easy"
+        }
+      ],
+      "type": "pyramid",
+      "intensity": "high",
+      "goal": "vo2max",
+      "minLevel": 2,
+      "maxLevel": 2
+    },
+    {
+      "id": "hills_everest",
+      "cat": "HILLS",
+      "variant": "everest",
+      "title": "Everest (Cuestas)",
+      "guide": "incline",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 360,
+          "spdKey": "easy"
+        },
+        {
+          "repeat": 10,
+          "block": [
+            {
+              "type": "work",
+              "name": "Subida",
+              "sec": 60,
+              "spdKey": "steady",
+              "inc": 4
+            },
+            {
+              "type": "rest",
+              "name": "Bajada / suave",
+              "sec": 60,
+              "spdKey": "easy",
+              "inc": 0
+            }
+          ]
+        },
+        {
+          "type": "cool",
+          "name": "Vuelta a la calma",
+          "sec": 240,
+          "spdKey": "easy"
+        }
+      ],
+      "type": "everest",
+      "intensity": "high",
+      "goal": "hill_strength",
+      "minLevel": 2,
+      "maxLevel": 2
+    },
+    {
+      "id": "hills_intervals",
+      "cat": "HILLS",
+      "variant": "intervals",
+      "title": "Intervalos en Cuesta",
+      "guide": "incline",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 360,
+          "spdKey": "easy"
+        },
+        {
+          "repeat": 6,
+          "block": [
+            {
+              "type": "work",
+              "name": "Cuesta fuerte",
+              "sec": 90,
+              "spdKey": "hard",
+              "inc": 5
+            },
+            {
+              "type": "rest",
+              "name": "Recuperación",
+              "sec": 90,
+              "spdKey": "easy",
+              "inc": 0
+            }
+          ]
+        },
+        {
+          "type": "cool",
+          "name": "Vuelta a la calma",
+          "sec": 240,
+          "spdKey": "easy"
+        }
+      ],
+      "type": "everest",
+      "intensity": "high",
+      "goal": "hill_endurance",
+      "minLevel": 1,
+      "maxLevel": 2
+    },
+    {
+      "id": "endurance_easy",
+      "cat": "ENDURANCE",
+      "variant": "easy",
+      "title": "Rodaje Suave",
+      "guide": "pace",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Entrada en calor",
+          "sec": 300,
+          "spdKey": "easy"
+        },
+        {
+          "type": "steady",
+          "name": "Ritmo constante",
+          "sec": 1200,
+          "spdKey": "easy"
+        },
+        {
+          "type": "cool",
+          "name": "Vuelta a la calma",
+          "sec": 300,
+          "spdKey": "easy"
+        }
+      ],
+      "type": "steady",
+      "intensity": "easy",
+      "goal": "aerobic_base",
+      "minLevel": 0,
+      "maxLevel": 2
+    },
+    {
+      "id": "endurance_progression",
+      "cat": "ENDURANCE",
+      "variant": "progression",
+      "title": "Progresivo",
+      "guide": "pace",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 360,
+          "spdKey": "easy"
+        },
+        {
+          "type": "steady",
+          "name": "Bloque 1",
+          "sec": 600,
+          "spdKey": "easy"
+        },
+        {
+          "type": "steady",
+          "name": "Bloque 2",
+          "sec": 600,
+          "spdKey": "steady"
+        },
+        {
+          "type": "steady",
+          "name": "Bloque 3",
+          "sec": 360,
+          "spdKey": "hard"
+        },
+        {
+          "type": "cool",
+          "name": "Vuelta a la calma",
+          "sec": 240,
+          "spdKey": "easy"
+        }
+      ],
+      "type": "steady",
+      "intensity": "moderate",
+      "goal": "progression",
+      "minLevel": 1,
+      "maxLevel": 2
+    },
+    {
+      "id": "hr_base",
+      "cat": "HR",
+      "variant": "base",
+      "title": "Base Z2",
+      "guide": "hr",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 480,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1"
+          }
+        },
+        {
+          "type": "steady",
+          "name": "Base aeróbica",
+          "sec": 1200,
+          "hrTarget": {
+            "z": 2,
+            "label": "Z2 (BASE)"
+          }
+        },
+        {
+          "type": "cool",
+          "name": "Enfriar",
+          "sec": 240,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1"
+          }
+        }
+      ],
+      "type": "default",
+      "intensity": "moderate",
+      "goal": "aerobic_base",
+      "minLevel": 0,
+      "maxLevel": 2
+    },
+    {
+      "id": "hr_tempo",
+      "cat": "HR",
+      "variant": "tempo",
+      "title": "Tempo Z3",
+      "guide": "hr",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 480,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1"
+          }
+        },
+        {
+          "repeat": 3,
+          "block": [
+            {
+              "type": "work",
+              "name": "Tempo",
+              "sec": 360,
+              "hrTarget": {
+                "z": 3,
+                "label": "Z3 (TEMPO)"
+              }
+            },
+            {
+              "type": "rest",
+              "name": "Suave",
+              "sec": 180,
+              "hrTarget": {
+                "z": 2,
+                "label": "Z2"
+              }
+            }
+          ]
+        },
+        {
+          "type": "cool",
+          "name": "Enfriar",
+          "sec": 240,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1"
+          }
+        }
+      ],
+      "type": "default",
+      "intensity": "moderate",
+      "goal": "threshold",
+      "minLevel": 1,
+      "maxLevel": 2
+    },
+    {
+      "id": "hr_hiit",
+      "cat": "HR",
+      "variant": "hiit",
+      "title": "HIIT por Pulso",
+      "guide": "hr",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 480,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1"
+          }
+        },
+        {
+          "repeat": 8,
+          "block": [
+            {
+              "type": "work",
+              "name": "Fuerte",
+              "sec": 60,
+              "hrTarget": {
+                "z": 4,
+                "label": "Z4 (HIIT)"
+              }
+            },
+            {
+              "type": "rest",
+              "name": "Recuperación",
+              "sec": 75,
+              "hrTarget": {
+                "z": 2,
+                "label": "Z2"
+              }
+            }
+          ]
+        },
+        {
+          "type": "cool",
+          "name": "Enfriar",
+          "sec": 240,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1"
+          }
+        }
+      ],
+      "type": "default",
+      "intensity": "high",
+      "goal": "vo2max",
+      "minLevel": 2,
+      "maxLevel": 2
+    },
+    {
+      "id": "hr_recovery",
+      "cat": "HR",
+      "variant": "recovery",
+      "title": "Recuperación Z1",
+      "guide": "hr",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Inicio suave",
+          "sec": 240,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1"
+          }
+        },
+        {
+          "type": "steady",
+          "name": "Recuperación",
+          "sec": 1200,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1 (RECOVERY)"
+          }
+        },
+        {
+          "type": "cool",
+          "name": "Soltar",
+          "sec": 240,
+          "hrTarget": {
+            "z": 1,
+            "label": "Z1"
+          }
+        }
+      ],
+      "type": "recovery",
+      "intensity": "easy",
+      "goal": "recovery",
+      "minLevel": 0,
+      "maxLevel": 2
+    },
+    {
+      "id": "endurance_fartlek_random",
+      "cat": "ENDURANCE",
+      "variant": "fartlek",
+      "title": "Fartlek Aleatorio (HR Coach)",
+      "guide": "hr",
+      "structure": [
+        {
+          "type": "warm",
+          "name": "Calentamiento",
+          "sec": 480,
+          "spdKey": "easy",
+          "spdOffset": 0
+        },
+        {
+          "type": "fartlek",
+          "name": "Fartlek Aleatorio",
+          "sec": 1200,
+          "spdKey": "steady",
+          "spdOffset": 0
+        },
+        {
+          "type": "cool",
+          "name": "Vuelta a la calma",
+          "sec": 300,
+          "spdKey": "easy",
+          "spdOffset": 0
+        }
+      ],
+      "type": "fartlek_random",
+      "params": {
+        "hardSecMin": 20,
+        "hardSecMax": 90,
+        "easySecMin": 40,
+        "easySecMax": 200,
+        "pairsMin": 8,
+        "pairsMax": 18,
+        "warmMin": 8,
+        "coolMin": 5
+      },
+      "intensity": "moderate",
+      "goal": "fartlek",
+      "minLevel": 1,
+      "maxLevel": 2
+    },
+    {
+      "id": "endurance_fartlek_30_30_hr",
+      "title": "Fartlek 30/30 (HR Coach)",
+      "cat": "ENDURANCE",
+      "variant": "fartlek",
+      "type": "fartlek_random",
+      "intensity": "high",
+      "params": {
+        "mode": "30_30",
+        "hardSec": 30,
+        "easySec": 30,
+        "warmMin": 7,
+        "coolMin": 5
+      },
+      "minLevel": 2,
+      "maxLevel": 2,
+      "goal": "fartlek"
+    },
+    {
+      "id": "endurance_fartlek_semaforo_hr",
+      "title": "Fartlek Semáforo (HR Coach)",
+      "cat": "ENDURANCE",
+      "variant": "fartlek",
+      "type": "fartlek_random",
+      "intensity": "moderate",
+      "params": {
+        "mode": "semaforo",
+        "greenSec": 60,
+        "yellowSec": 45,
+        "redSec": 30,
+        "warmMin": 7,
+        "coolMin": 5
+      },
+      "minLevel": 1,
+      "maxLevel": 2,
+      "goal": "fartlek"
+    },
+    {
+      "id": "endurance_fartlek_piramide_hr",
+      "title": "Fartlek Pirámide (HR Coach)",
+      "cat": "ENDURANCE",
+      "variant": "fartlek",
+      "type": "fartlek_random",
+      "intensity": "high",
+      "params": {
+        "mode": "piramide_hr",
+        "steps": [
+          30,
+          45,
+          60,
+          90,
+          60,
+          45,
+          30
+        ],
+        "recSec": 60,
+        "warmMin": 8,
+        "coolMin": 5
+      },
+      "minLevel": 2,
+      "maxLevel": 2,
+      "goal": "fartlek"
+    },
+    {
+      "id": "endurance_fartlek_boss_fight_hr",
+      "title": "Fartlek Boss Fight (HR Coach)",
+      "cat": "ENDURANCE",
+      "variant": "fartlek",
+      "type": "fartlek_random",
+      "intensity": "high",
+      "params": {
+        "mode": "boss_fight",
+        "hardSec": 45,
+        "easySec": 45,
+        "bossZ": 5,
+        "bossPct": 0.12,
+        "warmMin": 8,
+        "coolMin": 5
+      },
+      "minLevel": 2,
+      "maxLevel": 2,
+      "goal": "fartlek"
+    }
+  ]
+}
