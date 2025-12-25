@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<title>IRON FLOW DIRECTOR PRO</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    :root {
+        --bg: #000000;
+        --surface: #0a0a0a;
+        --surface-card: #111111;
+        --border: #2a2a2a;
+        --primary: #ccff00; /* Acid Volt */
+        --primary-dim: rgba(204, 255, 0, 0.15);
+        --accent: #3b82f6; /* Blue Tech */
+        --pump: #06b6d4; /* Cyan para Biceps Pump */
+        --danger: #ff2a2a;
+        --text: #ffffff;
+        --text-dim: #666666;
+        --nav-height: 70px;
+        --safe-top: env(safe-area-inset-top, 20px);
+        --safe-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
+    
+    body {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        margin: 0; padding: 0;
+        height: 100vh;
+        overflow: hidden;
+        display: flex; flex-direction: column;
+    }
+
+    /* --- 0. PANTALLA DE BLOQUEO / INICIO --- */
+    #welcome-screen {
+        position: fixed; inset: 0; z-index: 9999;
+        background: #000;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    #welcome-screen.hidden { transform: translateY(-100%); }
+    
+    .welcome-sub { font-size: 11px; letter-spacing: 4px; color: var(--text-dim); margin-bottom: 20px; text-transform: uppercase; }
+    .glitch-logo { font-size: 42px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 40px; }
+    .glitch-logo span { color: var(--primary); }
+    
+    .btn-lockin {
+        background: var(--primary); color: #000;
+        border: none; padding: 22px 50px;
+        font-size: 16px; font-weight: 800; letter-spacing: 1px;
+        text-transform: uppercase;
+        clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+        box-shadow: 0 0 30px var(--primary-dim);
+        cursor: pointer; transition: transform 0.1s;
+    }
+    .btn-lockin:active { transform: scale(0.96); }
+
+    /* --- LAYOUT HEADER --- */
+    .app-header {
+        padding: calc(15px + var(--safe-top)) 20px 15px 20px;
+        background: rgba(0,0,0,0.9);
+        backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border);
+        display: flex; justify-content: space-between; align-items: center;
+        z-index: 50; position: relative;
+    }
+    
+    .logo-mini { font-weight: 800; font-size: 16px; letter-spacing: -0.5px; }
+    .logo-mini span { color: var(--primary); }
+    
+    .timer-badge {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 18px; font-weight: 700;
+        color: #fff; display: flex; align-items: center; gap: 8px;
+    }
+    .live-dot { width: 6px; height: 6px; background: var(--danger); border-radius: 50%; box-shadow: 0 0 10px var(--danger); opacity: 0; transition: opacity 0.3s; }
+    .live-dot.active { opacity: 1; animation: pulse 2s infinite; }
+
+    /* Progress Bar Global */
+    .session-progress { position: absolute; bottom: -1px; left: 0; height: 1px; background: var(--primary); width: 0%; transition: width 0.5s; box-shadow: 0 0 10px var(--primary); }
+
+    /* --- SCROLLABLE VIEW --- */
+    .main-view {
+        flex: 1; overflow-y: auto;
+        padding: 20px 20px 120px 20px;
+        scroll-behavior: smooth;
+        display: none; opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+    .main-view.active { display: block; opacity: 1; }
+
+    /* --- WORKOUT CARDS --- */
+    .coach-header { margin-bottom: 25px; border-left: 2px solid var(--primary); padding-left: 15px; }
+    .coach-header h2 { font-size: 26px; font-weight: 900; margin: 0; text-transform: uppercase; letter-spacing: -0.5px; line-height: 1; }
+    .coach-header p { color: var(--text-dim); font-size: 11px; margin: 6px 0 0 0; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; }
+
+    .exercise-card {
+        background: var(--surface-card);
+        border: 1px solid var(--border);
+        border-radius: 2px;
+        padding: 20px; margin-bottom: 20px;
+        position: relative; transition: all 0.3s;
+    }
+    /* Estilo para ejercicio completado */
+    .exercise-card.finished { border-color: #222; opacity: 0.5; }
+    .exercise-card.finished::after {
+        content: "COMPLETADO"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-10deg);
+        font-size: 20px; font-weight: 900; color: var(--primary); border: 2px solid var(--primary); padding: 5px 15px;
+        opacity: 0.8; pointer-events: none;
+    }
+
+    /* Etiquetas de Marca */
+    .tag-row { display: flex; gap: 6px; margin-bottom: 12px; }
+    .brand-tag { font-size: 9px; font-weight: 800; text-transform: uppercase; padding: 3px 6px; color: #000; border-radius: 2px; }
+    .brand-tag.hammer { background: #e11d48; color: white; }
+    .brand-tag.gym80 { background: #fbbf24; }
+    .brand-tag.techno { background: #22c55e; }
+    .brand-tag.pump { background: var(--pump); color: #000; } /* Nuevo para bicep */
+
+    .ex-title { font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 15px; line-height: 1.2; }
+    
+    .specs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+    .spec-box label { display: block; font-size: 9px; color: var(--text-dim); margin-bottom: 2px; text-transform: uppercase; }
+    .spec-box val { font-family: 'JetBrains Mono'; font-size: 14px; font-weight: 600; color: var(--primary); }
+    
+    .tech-note { font-size: 12px; color: #aaa; background: rgba(255,255,255,0.03); padding: 10px; border-left: 2px solid #333; margin-bottom: 15px; line-height: 1.4; }
+    .tech-note b { color: var(--primary); }
+
+    /* --- SET COMMANDER (BOTONES DE SERIE) --- */
+    .sets-container {
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 8px;
+    }
+    .btn-set {
+        background: #000; border: 1px solid #333; color: #555;
+        padding: 12px 0; font-family: 'JetBrains Mono'; font-weight: 700; font-size: 13px;
+        cursor: pointer; position: relative; overflow: hidden;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        border-radius: 2px;
+    }
+    .btn-set span { font-size: 8px; font-weight: 600; font-family: 'Inter'; margin-top: 2px; text-transform: uppercase; }
+    
+    /* Estado: Activo (Toca hacerla) */
+    .btn-set.active { border-color: var(--primary); color: var(--primary); background: rgba(204, 255, 0, 0.05); box-shadow: 0 0 10px rgba(204,255,0,0.1); }
+    /* Estado: Hecho */
+    .btn-set.done { background: var(--primary); color: #000; border-color: var(--primary); }
+    /* Estado: Bloqueado */
+    .btn-set.locked { opacity: 0.3; pointer-events: none; }
+
+    /* --- PLAN LIST --- */
+    .plan-row {
+        display: flex; align-items: center; justify-content: space-between;
+        background: var(--surface-card); border: 1px solid var(--border);
+        padding: 18px; margin-bottom: 10px; border-radius: 2px;
+    }
+    .plan-row.today { border-left: 3px solid var(--primary); background: #151515; }
+    .p-day { font-size: 10px; font-weight: 700; color: var(--text-dim); text-transform: uppercase; }
+    .plan-row.today .p-day { color: var(--primary); }
+    .p-name { font-size: 14px; font-weight: 700; color: #fff; margin-top: 4px; }
+
+    /* --- HIIT CARDIO --- */
+    .hiit-interface { text-align: center; margin-top: 20px; }
+    .hiit-circle {
+        width: 240px; height: 240px; border-radius: 50%; border: 8px solid #222;
+        margin: 0 auto 30px auto; display: flex; flex-direction: column; justify-content: center; align-items: center;
+        position: relative; box-shadow: 0 0 40px rgba(0,0,0,0.5);
+    }
+    .hiit-circle.running { border-color: var(--primary); box-shadow: 0 0 40px var(--primary-dim); }
+    .hiit-circle.sprint { border-color: var(--danger); box-shadow: 0 0 50px rgba(255, 42, 42, 0.3); }
+    
+    .hiit-time { font-size: 50px; font-family: 'JetBrains Mono'; font-weight: 700; color: #fff; line-height: 1; }
+    .hiit-phase { font-size: 14px; font-weight: 900; letter-spacing: 2px; margin-top: 10px; color: var(--text-dim); text-transform: uppercase; }
+    
+    .btn-action { width: 100%; padding: 16px; background: #222; color: #fff; border: 1px solid #333; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 10px; }
+    .btn-action.primary { background: var(--primary); color: #000; border: none; }
+    .btn-action.danger { background: var(--danger); color: #fff; border: none; }
+
+    /* --- OVERLAY DESCANSO --- */
+    .rest-modal {
+        position: fixed; inset: 0; background: #000; z-index: 200;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .rest-modal.visible { opacity: 1; pointer-events: auto; }
+    
+    .rest-label { color: var(--text-dim); letter-spacing: 3px; font-size: 12px; margin-bottom: 20px; text-transform: uppercase; }
+    .rest-timer-big { font-size: 100px; font-family: 'JetBrains Mono'; font-weight: 500; color: #fff; line-height: 1; }
+    .rest-progress { width: 220px; height: 4px; background: #222; margin: 40px 0; border-radius: 2px; }
+    .rest-fill { width: 100%; height: 100%; background: var(--primary); transition: width 1s linear; }
+    
+    .btn-skip { background: transparent; border: 1px solid #333; color: #666; padding: 12px 30px; font-size: 12px; font-weight: 700; letter-spacing: 1px; }
+
+    /* --- NAVIGATION --- */
+    .nav-bar {
+        position: fixed; bottom: 0; left: 0; right: 0;
+        height: calc(var(--nav-height) + var(--safe-bottom));
+        background: rgba(10,10,10,0.95);
+        backdrop-filter: blur(15px); border-top: 1px solid var(--border);
+        display: flex; padding-bottom: var(--safe-bottom);
+        z-index: 100;
+    }
+    .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: #444; cursor: pointer; }
+    .nav-item svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; }
+    .nav-item span { font-size: 9px; font-weight: 700; letter-spacing: 0.5px; }
+    .nav-item.active { color: var(--primary); }
+
+    @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+</style>
+</head>
+<body>
+
+    <!-- PANTALLA DE INICIO -->
+    <div id="welcome-screen">
+        <div class="welcome-sub">SYSTEM READY</div>
+        <div class="glitch-logo">IRON<span>FLOW</span></div>
+        <button class="btn-lockin" onclick="App.startSession()">LOCK IN</button>
+        <div style="margin-top:20px; color:#444; font-size:10px;">HIGH INTENSITY PROTOCOL</div>
+    </div>
+
+    <!-- HEADER -->
+    <header class="app-header">
+        <div class="logo-mini">IRON<span>FLOW</span></div>
+        <div class="timer-badge">
+            <div class="live-dot" id="live-dot"></div>
+            <span id="global-timer">00:00</span>
+        </div>
+        <div class="session-progress" id="session-progress"></div>
+    </header>
+
+    <!-- 1. VISTA ENTRENO -->
+    <div id="view-workout" class="main-view active">
+        <!-- Contenido Inyectado -->
+        <div id="workout-content"></div>
+    </div>
+
+    <!-- 2. VISTA PLAN -->
+    <div id="view-plan" class="main-view">
+        <h2 style="font-size:16px; color:#fff; margin-bottom:20px; letter-spacing:1px;">ESTRUCTURA SEMANAL</h2>
+        <div id="plan-list"></div>
+    </div>
+
+    <!-- 3. VISTA HIIT -->
+    <div id="view-hiit" class="main-view">
+        <div class="coach-header" style="border-color: var(--danger);">
+            <h2>CARDIO KILLER</h2>
+            <p>20 MINUTOS • SIN PIEDAD</p>
+        </div>
+        
+        <div class="hiit-interface">
+            <div class="hiit-circle" id="hiit-circle">
+                <div class="hiit-time" id="hiit-timer">20:00</div>
+                <div class="hiit-phase" id="hiit-phase">READY</div>
+            </div>
+            
+            <button class="btn-action primary" id="hiit-btn" onclick="HIIT.toggle()">INICIAR CARDIO</button>
+            <button class="btn-action" style="margin-top:10px; background:transparent; border-color:#333; color:#555;" onclick="HIIT.reset()">RESET</button>
+
+            <div style="margin-top:30px; text-align:left; font-size:12px; color:#666; padding:15px; border:1px solid #222; background:#080808;">
+                <strong style="color:#fff; display:block; margin-bottom:5px;">PROTOCOLO:</strong>
+                • 30s SPRINT MÁXIMO (Zona Roja)<br>
+                • 90s CAMINATA RÁPIDA (Recuperación)<br>
+                • Repetir hasta morir.
+            </div>
+        </div>
+    </div>
+
+    <!-- NAV BAR -->
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="Nav.to('workout')">
+            <svg viewBox="0 0 24 24"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11" /></svg>
+            <span>WORKOUT</span>
+        </div>
+        <div class="nav-item" onclick="Nav.to('plan')">
+            <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2" /><line x1="16" y1="3" x2="16" y2="7" /><line x1="8" y1="3" x2="8" y2="7" /><line x1="4" y1="11" x2="20" y2="11" /></svg>
+            <span>PLAN</span>
+        </div>
+        <div class="nav-item" onclick="Nav.to('hiit')">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><polyline points="12 7 12 12 15 15" /></svg>
+            <span>HIIT</span>
+        </div>
+    </nav>
+
+    <!-- OVERLAY DESCANSO -->
+    <div id="rest-modal" class="rest-modal">
+        <div class="rest-label">RECUPERA EL ALIENTO</div>
+        <div class="rest-timer-big" id="rest-display">60</div>
+        <div class="rest-progress"><div class="rest-fill" id="rest-fill"></div></div>
+        <button class="btn-skip" onclick="Rest.stop()">SALTAR DESCANSO</button>
+    </div>
+
+<script>
+/* ===============================================================
+   1. BASE DE DATOS MAESTRA (Con Nombres Técnicos y Biceps)
+   =============================================================== */
+const DB = [
+    {
+        dayId: 1, 
+        name: "LUNES: PECHO (EMPUJE A)",
+        focus: "Hammer Strength & Gym80",
+        exercises: [
+            { name: "Press Inclinado Hammer", brand: "hammer", sets: "2 Aprox + 2 Efectivas", reps: "6-8 Pesadas", note: "Retracción escapular. Baja en 3s. Explota al subir." },
+            { name: "Press Plano Convergente", brand: "techno", sets: "1 Top + 1 Back-off", reps: "Fallo Técnico", note: "Explosivo. Aprieta el pecho en la cúspide." },
+            { name: "Aperturas Contractora (Pec Deck)", brand: "techno", sets: "3 Series", reps: "12-15", note: "Estiramiento máximo. Isometría de 1s." },
+            { name: "Fondos Máquina (Dips)", brand: "gym80", sets: "2 Series al Fallo", reps: "Fallo", note: "Inclina el cuerpo. Codos cerrados." }
+        ]
+    },
+    {
+        dayId: 2, 
+        name: "MARTES: ESPALDA (TRACCIÓN A)",
+        focus: "Amplitud Dorsal",
+        exercises: [
+            { name: "Jalón Dorsal Agarre Ancho", brand: "hammer", sets: "3 Series Pesadas", reps: "8-10", note: "Barra a la clavícula. Sin balanceo lumbar." },
+            { name: "Remo Unilateral (High Row)", brand: "hammer", sets: "3 Series/Lado", reps: "10-12", note: "Codo a la cadera. Conecta con el dorsal bajo." },
+            { name: "Pullover Polea Alta", brand: "techno", sets: "3 Series", reps: "15", note: "Tensión constante. No subas más de la frente." },
+            { name: "Curl Predicador Máquina", brand: "techno", sets: "3 Series", reps: "10-12", note: "Extensión completa. Sin rebotes." }
+        ]
+    },
+    {
+        dayId: 3, 
+        name: "MIÉRCOLES: PIERNA (QUADS)",
+        focus: "Sentadilla Hack Gym80",
+        exercises: [
+            { name: "Extensión Cuádriceps", brand: "techno", sets: "3 Series (Pre-Fatiga)", reps: "15-20", note: "Rodillas alineadas. Quema garantizada." },
+            { name: "Hack Squat Pro", brand: "gym80", sets: "2 Aprox + 1 TOP SET", reps: "6-9 (Top Set)", note: "Baja profundo. RIR 0. El ejercicio rey." },
+            { name: "Prensa 45º", brand: "hammer", sets: "3 Series", reps: "12-15", note: "Pies juntos y bajos. Empuja con el talón." },
+            { name: "Gemelo en Prensa", brand: "hammer", sets: "4 Series", reps: "15", note: "Pausa de 2s en el estiramiento." }
+        ]
+    },
+    {
+        dayId: 4, 
+        name: "JUEVES: HOMBRO & TRÍCEPS",
+        focus: "Deltoides 3D",
+        exercises: [
+            { name: "Press Militar Máquina", brand: "gym80", sets: "3 Series Pesadas", reps: "8-10", note: "Rango completo. No bloquees codos." },
+            { name: "Elevaciones Laterales", brand: "gym80", sets: "4 Series", reps: "15-20", note: "Codos sobre muñecas. Control total." },
+            { name: "Tríceps Polea (Cuerda)", brand: "techno", sets: "3 Series", reps: "12-15", note: "Abre la cuerda al final. Aprieta el tríceps." },
+            { name: "Press Francés Mancuernas", brand: "techno", sets: "3 Series", reps: "10-12", note: "Estira bien atrás de la cabeza." }
+        ]
+    },
+    {
+        dayId: 5, 
+        name: "VIERNES: ESPALDA (DENSIDAD)",
+        focus: "Espesor & Trapecio",
+        exercises: [
+            { name: "Remo T-Bar (Apoyo Pecho)", brand: "gym80", sets: "3 Series Pesadas", reps: "8-10", note: "Retracción escapular antes de tirar." },
+            { name: "Remo Gironda", brand: "techno", sets: "3 Series", reps: "10-12", note: "Estira al máximo. Torso quieto." },
+            { name: "Pájaros (Posterior)", brand: "techno", sets: "3 Series", reps: "15-20", note: "Aísla el posterior. No uses trapecio." },
+            { name: "Curl Martillo Alterno", brand: "hammer", sets: "3 Series", reps: "10", note: "Pesado. Braquial anterior." }
+        ]
+    },
+    {
+        dayId: 6, 
+        name: "SÁBADO: FEMORAL & GLÚTEO",
+        focus: "Cadena Posterior",
+        exercises: [
+            { name: "Curl Femoral Tumbado", brand: "techno", sets: "4 Series", reps: "10-12", note: "Cadera pegada. Controla la negativa." },
+            { name: "Peso Muerto Rumano Mancuernas", brand: "techno", sets: "3 Series", reps: "10-12", note: "Baja en 3s. Estiramiento doloroso." },
+            { name: "Prensa Horizontal (Pies Altos)", brand: "techno", sets: "3 Series", reps: "15-20", note: "Enfoque en glúteo e isquios." },
+            { name: "Abdominales Crunch Máquina", brand: "techno", sets: "4 Series", reps: "15-20", note: "Expulsa aire al contraer." }
+        ]
+    },
+    {
+        dayId: 0, 
+        name: "DOMINGO: DESCANSO ACTIVO",
+        focus: "Recovery",
+        exercises: [] // Se añadirá biceps si se entrena
+    }
+];
+
+// EJERCICIO EXTRA OBLIGATORIO DIARIO
+const DAILY_PUMP = {
+    name: "FINISHER: BICEP PUMP",
+    brand: "pump",
+    sets: "3 Series Gigantes",
+    reps: "20-25 (Sin parar)",
+    note: "Coge unas mancuernas ligeras/medias. Bombeo puro. Descanso 30s."
+};
+
+/* ===============================================================
+   2. LÓGICA DE APLICACIÓN (ENGINE)
+   =============================================================== */
+const App = {
+    dayIdx: new Date().getDay(),
+    startTime: null,
+    timerInt: null,
+    
+    // Estado del progreso
+    totalSets: 0,
+    completedSets: 0,
+
+    init: () => {
+        App.renderPlan();
+    },
+
+    startSession: () => {
+        // UI Transition
+        document.getElementById('welcome-screen').classList.add('hidden');
+        document.getElementById('live-dot').classList.add('active');
+
+        // Global Timer Start
+        App.startTime = Date.now();
+        App.timerInt = setInterval(() => {
+            const diff = Math.floor((Date.now() - App.startTime) / 1000);
+            const m = Math.floor(diff / 60);
+            const s = diff % 60;
+            document.getElementById('global-timer').innerText = 
+                `${m<10?'0'+m:m}:${s<10?'0'+s:s}`;
+        }, 1000);
+
+        // Load Content
+        App.loadWorkout(App.dayIdx);
+    },
+
+    loadWorkout: (idx) => {
+        const data = DB.find(d => d.dayId === idx) || DB[0];
+        const container = document.getElementById('workout-content');
+        
+        // 1. Preparar lista ejercicios (Clonar + Pump)
+        let exercises = [];
+        if (data.exercises.length > 0) {
+            exercises = [...data.exercises];
+            // Añadir el PUMP diario al final
+            exercises.push(DAILY_PUMP);
+        }
+
+        // 2. Render Header
+        let html = `
+            <div class="coach-header">
+                <h2>${data.name.split(':')[1] || 'DÍA DE DESCANSO'}</h2>
+                <p>${data.focus} // ${data.name.split(':')[0]}</p>
+            </div>
+        `;
+
+        if(exercises.length === 0) {
+             html += `<div style="text-align:center; padding:40px; border:1px dashed #333; color:#555;">
+                <h3>RECUPERACIÓN TOTAL</h3>
+                <p>Hoy no hay hierros. Come y duerme.</p>
+                <button class="btn-action primary" onclick="App.forcePump()">FORZAR BICEP PUMP SOLO</button>
+             </div>`;
+        } else {
+            // Calcular total de series para la barra de progreso
+            App.totalSets = 0;
+            App.completedSets = 0;
+            App.updateProgress();
+
+            exercises.forEach((ex, exIndex) => {
+                // Parsear sets (ej: "3 Series" -> 3, "2+2" -> 4)
+                let numSets = 3; 
+                if(ex.sets.includes("2 Aprox")) numSets = 4;
+                else if(ex.sets.includes("1 Top")) numSets = 2;
+                else {
+                    const match = ex.sets.match(/\d+/);
+                    if(match) numSets = parseInt(match[0]);
+                }
+                
+                App.totalSets += numSets;
+
+                // Render Card
+                html += `
+                <div class="exercise-card" id="card-${exIndex}">
+                    <div class="tag-row">
+                        <span class="brand-tag ${ex.brand}">${ex.brand}</span>
+                    </div>
+                    <div class="ex-title">${ex.name}</div>
+                    
+                    <div class="specs-grid">
+                        <div class="spec-box"><label>SERIES</label><val>${ex.sets}</val></div>
+                        <div class="spec-box"><label>REPS</label><val>${ex.reps}</val></div>
+                    </div>
+                    
+                    <div class="tech-note"><b>COACH:</b> ${ex.note}</div>
+                    
+                    <div class="sets-container" id="sets-${exIndex}">
+                        ${App.generateSetButtons(exIndex, numSets)}
+                    </div>
+                </div>`;
+            });
+
+            // Finish Button
+            html += `<div style="height:40px"></div>
+            <button class="btn-action primary" onclick="Nav.to('hiit')">FINALIZAR PESAS -> IR A HIIT</button>`;
+        }
+
+        container.innerHTML = html;
+        Nav.to('workout');
+    },
+
+    forcePump: () => {
+        // Caso especial para Domingo si quiere entrenar solo biceps
+        const pumpArr = [DAILY_PUMP];
+        const data = { name: "DOMINGO: SOLO BICEPS", focus: "Bombeo de Emergencia", exercises: pumpArr };
+        // Hack temporal para recargar con esto
+        const oldFind = DB.find;
+        DB.find = () => data; // Sobrescribir busqueda
+        App.loadWorkout(0);
+        DB.find = oldFind; // Restaurar
+    },
+
+    generateSetButtons: (exIndex, count) => {
+        let html = '';
+        for(let i=0; i<count; i++) {
+            // El primero activo, resto bloqueados (locked)
+            const status = (i === 0) ? 'active' : 'locked';
+            html += `<button class="btn-set ${status}" 
+                        id="btn-${exIndex}-${i}" 
+                        onclick="SetManager.handleSet(${exIndex}, ${i}, ${count})">
+                        SET ${i+1}
+                        <span>${i === 0 ? 'START' : 'WAIT'}</span>
+                     </button>`;
+        }
+        return html;
+    },
+    
+    updateProgress: () => {
+        if(App.totalSets === 0) return;
+        const pct = (App.completedSets / App.totalSets) * 100;
+        document.getElementById('session-progress').style.width = `${pct}%`;
+    },
+
+    renderPlan: () => {
+        const list = document.getElementById('plan-list');
+        const days = ["DOMINGO", "LUNES", "MARTES", "MIÉRCOLES", "JUEVES", "VIERNES", "SÁBADO"];
+        let html = '';
+        // Orden Lunes -> Domingo
+        [1,2,3,4,5,6,0].forEach(d => {
+            const r = DB.find(x => x.dayId === d);
+            const isToday = d === App.dayIdx;
+            html += `
+            <div class="plan-row ${isToday ? 'today' : ''}" onclick="App.previewDay(${d})">
+                <div>
+                    <div class="p-day">${days[d]} ${isToday ? ' // HOY' : ''}</div>
+                    <div class="p-name">${r.name.split(':')[1] || 'DESCANSO'}</div>
+                </div>
+                <div style="color:${isToday ? 'var(--primary)' : '#333'}">➔</div>
+            </div>`;
+        });
+        list.innerHTML = html;
+    },
+    
+    previewDay: (d) => {
+        App.loadWorkout(d);
+    }
+};
+
+/* ===============================================================
+   3. SET COMMANDER (Gestión de Series)
+   =============================================================== */
+const SetManager = {
+    handleSet: (exIdx, setIdx, totalSets) => {
+        const btn = document.getElementById(`btn-${exIdx}-${setIdx}`);
+        
+        // Logica visual botón
+        btn.classList.remove('active');
+        btn.classList.add('done');
+        btn.innerHTML = `SET ${setIdx+1}<span>DONE</span>`;
+        btn.onclick = null; // Desactivar click
+
+        // Vibración
+        if(navigator.vibrate) navigator.vibrate(50);
+
+        // Actualizar progreso global
+        App.completedSets++;
+        App.updateProgress();
+
+        // Lanzar Descanso
+        Rest.start(() => {
+            // Callback al terminar descanso:
+            // Desbloquear siguiente serie si existe
+            const nextSetIdx = setIdx + 1;
+            if(nextSetIdx < totalSets) {
+                const nextBtn = document.getElementById(`btn-${exIdx}-${nextSetIdx}`);
+                nextBtn.classList.remove('locked');
+                nextBtn.classList.add('active');
+                nextBtn.innerHTML = `SET ${nextSetIdx+1}<span>GO</span>`;
+            } else {
+                // Ejercicio Terminado
+                document.getElementById(`card-${exIdx}`).classList.add('finished');
+                // Auto scroll al siguiente? Opcional.
+            }
+        });
+    }
+};
+
+/* ===============================================================
+   4. REST ENGINE (Temporizador Descanso)
+   =============================================================== */
+const Rest = {
+    interval: null,
+    duration: 60, // Segundos standard
+    onComplete: null,
+
+    start: (callback) => {
+        Rest.onComplete = callback;
+        const modal = document.getElementById('rest-modal');
+        modal.classList.add('visible');
+        
+        let t = 60; // 60s fijos
+        // Si es el Biceps pump, descanso corto (30s)
+        // Detectar si estamos en el pump (hack simple por ID o texto, pero dejemos 60s standard para fuerza, 
+        // usuario puede saltar si quiere intensidad)
+        
+        document.getElementById('rest-display').innerText = t;
+        document.getElementById('rest-fill').style.width = '100%';
+        document.getElementById('rest-fill').style.backgroundColor = 'var(--primary)';
+
+        if(Rest.interval) clearInterval(Rest.interval);
+
+        Rest.interval = setInterval(() => {
+            t--;
+            document.getElementById('rest-display').innerText = t;
+            
+            // Bar update
+            const pct = (t / 60) * 100;
+            document.getElementById('rest-fill').style.width = pct + '%';
+
+            // Warning colors
+            if(t < 10) {
+                document.getElementById('rest-display').style.color = 'var(--danger)';
+                document.getElementById('rest-fill').style.backgroundColor = 'var(--danger)';
+            }
+
+            if(t <= 0) {
+                Rest.stop();
+                if(navigator.vibrate) navigator.vibrate([200,100,200,100,500]);
+            }
+        }, 1000);
+    },
+
+    stop: () => {
+        clearInterval(Rest.interval);
+        document.getElementById('rest-modal').classList.remove('visible');
+        // Reset color style delay
+        setTimeout(() => {
+            document.getElementById('rest-display').style.color = '#fff';
+        }, 500);
+        
+        if(Rest.onComplete) Rest.onComplete();
+    }
+};
+
+/* ===============================================================
+   5. HIIT ENGINE
+   =============================================================== */
+const HIIT = {
+    active: false,
+    timeLeft: 1200, // 20 min
+    timer: null,
+    
+    toggle: () => {
+        const btn = document.getElementById('hiit-btn');
+        if(HIIT.active) {
+            clearInterval(HIIT.timer);
+            HIIT.active = false;
+            btn.innerText = "CONTINUAR";
+            btn.classList.remove('danger');
+            btn.classList.add('primary');
+        } else {
+            HIIT.active = true;
+            btn.innerText = "PAUSAR";
+            btn.classList.remove('primary');
+            btn.classList.add('danger');
+            HIIT.loop();
+        }
+    },
+    
+    reset: () => {
+        clearInterval(HIIT.timer);
+        HIIT.active = false;
+        HIIT.timeLeft = 1200;
+        document.getElementById('hiit-timer').innerText = "20:00";
+        document.getElementById('hiit-phase').innerText = "READY";
+        document.getElementById('hiit-circle').className = "hiit-circle";
+        document.getElementById('hiit-btn').innerText = "INICIAR CARDIO";
+        document.getElementById('hiit-btn').className = "btn-action primary";
+    },
+
+    loop: () => {
+        HIIT.timer = setInterval(() => {
+            if(HIIT.timeLeft > 0) {
+                HIIT.timeLeft--;
+                
+                // Formato
+                let m = Math.floor(HIIT.timeLeft / 60);
+                let s = HIIT.timeLeft % 60;
+                document.getElementById('hiit-timer').innerText = `${m}:${s<10?'0'+s:s}`;
+
+                // Lógica Intervalos (Ciclo 2 min: 30s Sprint + 90s Walk)
+                // Usamos tiempo transcurrido para sincronizar ciclos
+                const elapsed = 1200 - HIIT.timeLeft; 
+                const cyclePos = elapsed % 120; // 0..119
+                
+                const circle = document.getElementById('hiit-circle');
+                const phase = document.getElementById('hiit-phase');
+
+                if(cyclePos < 30) {
+                    // SPRINT (0-30s)
+                    phase.innerText = "SPRINT MÁXIMO";
+                    phase.style.color = "var(--danger)";
+                    circle.className = "hiit-circle sprint";
+                } else {
+                    // WALK (30-120s)
+                    phase.innerText = "RECUPERA";
+                    phase.style.color = "var(--primary)";
+                    circle.className = "hiit-circle running";
+                }
+
+            } else {
+                HIIT.reset();
+                alert("SESIÓN TERMINADA. BUEN TRABAJO SOLDADO.");
+            }
+        }, 1000);
+    }
+};
+
+/* ===============================================================
+   6. NAVEGACIÓN
+   =============================================================== */
+const Nav = {
+    to: (viewId) => {
+        document.querySelectorAll('.main-view').forEach(v => v.classList.remove('active'));
+        document.getElementById(`view-${viewId}`).classList.add('active');
+        
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        if(viewId === 'workout') document.querySelectorAll('.nav-item')[0].classList.add('active');
+        if(viewId === 'plan') document.querySelectorAll('.nav-item')[1].classList.add('active');
+        if(viewId === 'hiit') document.querySelectorAll('.nav-item')[2].classList.add('active');
+    }
+};
+
+// Start Logic
+App.init();
+
+</script>
+</body>
+</html>
