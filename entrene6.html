@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#12140e">
+    <title>IRON FLOW SYSTEM 4.0</title>
+    
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+    
+    <!-- ICONS -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- CONFIGURACIÓN TAILWIND -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#bcf906",
+                        "danger": "#ec131e",
+                        "hiit": "#f9561f",
+                        "warmup": "#fbbf24", 
+                        "cooldown": "#38bdf8",
+                        "bg-dark": "#12140e",
+                        "surface": "#1e230f",
+                        "surface-light": "#2a301a",
+                        "text-dim": "#a1a1aa",
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "sans-serif"],
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["Lexend", "monospace"]
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    screens: {
+                        'short': { 'raw': '(max-height: 700px)' }
+                    }
+                },
+            },
+        }
+    </script>
+
+    <style>
+        /* ESTILOS CRÍTICOS PARA MÓVIL */
+        :root {
+            --sat: env(safe-area-inset-top);
+            --sab: env(safe-area-inset-bottom);
+        }
+
+        body { 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none; 
+            background-color: #12140e;
+            color: white;
+            overscroll-behavior-y: none;
+            font-size: 16px;
+        }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .timer-circle {
+            transition: stroke-dashoffset 0.2s linear, color 0.3s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        input, select, textarea { font-size: 16px !important; }
+
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; margin: 0; 
+        }
+        
+        .material-symbols-outlined { font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 48; font-size: 28px !important; }
+        .nav-icon { font-size: 30px !important; }
+        .big-icon { font-size: 40px !important; }
+
+        .pt-safe { padding-top: max(20px, var(--sat)); }
+        .pb-safe { padding-bottom: max(20px, var(--sab)); }
+        .pb-nav { padding-bottom: calc(90px + var(--sab)); }
+    
+
+        /* ============================================================
+           MEJORA DE LEGIBILIDAD (iPhone / táctil) — sin cambiar diseño
+           - Aumenta tamaño de texto en entradas de KG/RPE y sus etiquetas
+           - Mantiene colores, estructura y espaciados generales
+        ============================================================ */
+        @media (pointer: coarse) {
+            /* Un pelín más grande el texto general (sin tocar layout) */
+            body { font-size: 18px; }
+
+            /* Filas de registro (KG / RPE): más legible */
+            div[id^="row-"] input[type="number"]{
+                font-size: 22px !important;
+                line-height: 1.15 !important;
+                height: 48px !important;            /* +tap target */
+                padding-top: 6px !important;
+                padding-bottom: 6px !important;
+            }
+
+            /* Nº de serie (#1, #2, …) */
+            div[id^="row-"] > span{
+                font-size: 14px !important;
+            }
+
+            /* Etiquetas "KG" / "RPE" y el último valor mostrado en pequeño */
+            div[id^="row-"] label,
+            div[id^="row-"] [class*="text-[9px]"]{
+                font-size: 12px !important;
+            }
+
+            /* Ajustes finos para que las etiquetas no se monten con el borde */
+            div[id^="row-"] label{
+                top: -10px !important;
+            }
+
+            /* Último valor (arriba a la derecha) un pelín más centrado con el input más alto */
+            div[id^="row-"] [class*="right-2"][class*="top-2"][class*="font-mono"]{
+                top: 10px !important;
+            }
+
+            /* Evita que otros inputs queden pequeños en móvil */
+            input, select, textarea { font-size: 18px !important; }
+        }
+
+</style>
+</head>
+<body class="h-[100dvh] w-full flex flex-col overflow-hidden font-sans text-base bg-bg-dark">
+
+    <!-- ===============================================================
+         VISTA 0: WELCOME SCREEN
+         =============================================================== -->
+    <div id="welcome-screen" class="absolute inset-0 z-[60] flex flex-col bg-[#221011] transition-transform duration-700 ease-in-out will-change-transform">
+        <div class="absolute inset-0 z-0 bg-cover bg-center opacity-40 mix-blend-multiply" style="background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#221011] via-[#221011]/80 to-transparent z-0"></div>
+
+        <div class="relative z-10 flex w-full justify-end p-6 pt-safe">
+            <div class="flex items-center gap-2 opacity-80 bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm border border-white/5">
+                <span class="material-symbols-outlined text-danger text-[14px]">circle</span>
+                <p class="text-white/60 text-xs font-bold tracking-widest uppercase font-mono">SYSTEM READY</p>
+            </div>
+        </div>
+
+        <div class="relative z-10 flex flex-1 flex-col justify-center items-center px-6">
+            <div class="flex flex-col items-center gap-6 animate-pulse-slow">
+                <div class="h-24 w-24 border-[3px] border-danger flex items-center justify-center rotate-45 mb-4 shadow-[0_0_35px_rgba(236,19,30,0.4)] bg-danger/5 backdrop-blur-sm">
+                    <span class="material-symbols-outlined text-danger text-6xl -rotate-45 big-icon">bolt</span>
+                </div>
+                <h1 class="text-7xl font-display font-black tracking-tighter text-white text-center leading-[0.85] drop-shadow-2xl">
+                    IRON<br/><span class="text-transparent bg-clip-text bg-gradient-to-br from-white to-gray-600">FLOW</span>
+                </h1>
+                <div class="mt-4 border border-danger/30 bg-danger/10 px-6 py-2 backdrop-blur-md rounded-full">
+                    <p class="text-danger text-[10px] font-bold tracking-[0.25em] uppercase leading-none">High Intensity Protocol</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 w-full px-6 pb-16 pb-safe flex flex-col items-center gap-6">
+            <button onclick="App.enterSystem()" class="group relative flex w-full max-w-[480px] h-16 items-center justify-center overflow-hidden bg-danger text-white transition-all hover:bg-red-600 active:scale-[0.97] rounded-sm shadow-[0_10px_40px_rgba(236,19,30,0.3)]">
+                <div class="absolute top-0 left-0 h-3 w-3 border-t-2 border-l-2 border-white/40"></div>
+                <div class="absolute bottom-0 right-0 h-3 w-3 border-b-2 border-r-2 border-white/40"></div>
+                <div class="flex items-center gap-4">
+                    <span class="text-lg font-bold tracking-widest uppercase">ACCESO SISTEMA</span>
+                    <span class="material-symbols-outlined group-hover:translate-x-2 transition-transform text-2xl">arrow_forward</span>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===============================================================
+         HEADER COMÚN
+         =============================================================== -->
+    <header id="app-header" class="shrink-0 flex items-center justify-between px-5 py-4 pt-safe bg-bg-dark/95 backdrop-blur-md z-40 border-b border-white/5 hidden sticky top-0">
+        <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary text-3xl">bolt</span>
+            <span class="font-display font-bold text-xl tracking-tight">IRON<span class="text-white/40">FLOW</span></span>
+        </div>
+        
+        <div class="flex items-center gap-3 bg-surface px-3 py-1.5 rounded-full border border-white/10 shadow-sm">
+            <div id="live-dot" class="w-2 h-2 rounded-full bg-gray-600 transition-colors duration-300"></div>
+            <span id="global-timer" class="font-mono text-base font-bold tracking-wider leading-none pt-0.5 text-white/90">00:00</span>
+        </div>
+    </header>
+
+    <!-- CONTAINER PRINCIPAL VISTAS -->
+    <div class="relative flex-1 w-full overflow-hidden">
+
+        <!-- ===============================================================
+             VISTA 1: WORKOUT (PESAS)
+             =============================================================== -->
+        <div id="view-workout" class="main-view absolute inset-0 overflow-y-auto no-scrollbar pb-nav px-5 hidden opacity-0 transition-opacity duration-300">
+            <!-- Finish Banner -->
+            <div id="finish-banner" class="hidden mt-4 p-5 rounded-xl bg-primary/10 border border-primary text-center shadow-[0_0_20px_rgba(188,249,6,0.1)]">
+                <p class="text-primary font-black tracking-widest uppercase text-lg">SESIÓN FINALIZADA</p>
+            </div>
+
+            <button id="btn-unlock" onclick="App.unlockSession()" class="hidden w-full mt-4 py-4 border-2 border-dashed border-white/20 text-text-dim rounded-xl text-sm font-bold uppercase tracking-wider hover:bg-white/5 active:scale-98 transition-transform">
+                🔓 DESBLOQUEAR / NUEVA SESIÓN
+            </button>
+
+            <!-- Start Box -->
+            <div id="start-box" class="flex flex-col items-center justify-center py-10 min-h-[50vh] gap-6">
+                <div class="relative">
+                    <div class="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse"></div>
+                    <div class="relative h-24 w-24 rounded-full bg-surface border-2 border-white/10 flex items-center justify-center text-primary shadow-2xl">
+                        <span class="material-symbols-outlined big-icon" style="font-size: 48px !important;">play_arrow</span>
+                    </div>
+                </div>
+                <div class="text-center px-4">
+                    <h2 class="text-white font-bold text-2xl mb-1">Sistema en Espera</h2>
+                    <p class="text-text-dim text-sm max-w-[200px] mx-auto leading-relaxed">Inicia el cronómetro para comenzar a registrar tus series.</p>
+                </div>
+                <button onclick="App.startSession()" class="mt-2 bg-primary text-bg-dark font-black px-12 py-5 text-lg rounded-2xl uppercase tracking-wider shadow-[0_0_30px_rgba(188,249,6,0.3)] hover:scale-105 active:scale-95 transition-transform">
+                    INICIAR
+                </button>
+            </div>
+
+            <div id="workout-content" class="transition-opacity duration-500 opacity-30 pointer-events-none mt-6"></div>
+
+            <div id="workout-actions" class="hidden flex-col gap-3 mt-8 pb-4">
+                <button onclick="Nav.to('hiit')" class="w-full h-14 bg-surface border border-white/10 rounded-xl text-hiit font-bold text-base uppercase tracking-wider hover:bg-surface-light flex items-center justify-center gap-3 active:scale-98">
+                    <span class="material-symbols-outlined text-2xl">sprint</span> IR A CARDIO
+                </button>
+                <button onclick="App.finishSession()" class="w-full h-16 bg-primary text-bg-dark rounded-xl font-black text-lg uppercase tracking-wider shadow-lg hover:bg-white flex items-center justify-center gap-3 active:scale-98">
+                    <span class="material-symbols-outlined text-3xl">save</span> FINALIZAR SESIÓN
+                </button>
+            </div>
+        </div>
+
+        <!-- ===============================================================
+             VISTA 2: PLAN (SEMANAL / HISTORIAL)
+             =============================================================== -->
+        <div id="view-plan" class="main-view absolute inset-0 overflow-y-auto no-scrollbar pb-nav px-5 hidden">
+            <div class="flex items-center justify-between mb-6 mt-4 sticky top-0 bg-bg-dark z-20 py-2">
+                <div>
+                    <span class="text-primary text-[10px] font-bold tracking-wider uppercase mb-0.5 block">FASE ACTUAL</span>
+                    <h2 class="text-3xl font-display font-bold leading-none text-white">MI PLAN</h2>
+                </div>
+                <button onclick="App.toggleHistoryMode()" class="bg-surface border border-white/10 rounded-full px-4 py-2 text-xs font-bold text-text-dim flex items-center gap-2 hover:text-white active:bg-white/10 transition-colors">
+                    <span id="btn-hist-label" class="material-symbols-outlined text-lg">history</span>
+                    <span id="btn-hist-text">HISTORIAL</span>
+                </button>
+            </div>
+
+            <div id="plan-progress-container" class="mb-6 p-4 bg-surface rounded-xl border border-white/5">
+                <div class="flex justify-between items-end mb-2">
+                    <span class="text-xs text-text-dim font-bold uppercase tracking-wide">Semana en curso</span>
+                    <span class="text-xl font-mono font-bold text-primary" id="week-progress-text">0/7</span>
+                </div>
+                <div class="h-2 w-full bg-black/40 rounded-full overflow-hidden">
+                    <div id="week-progress-bar" class="h-full bg-primary rounded-full transition-all duration-500 w-0"></div>
+                </div>
+            </div>
+
+            <div id="plan-list" class="flex flex-col gap-4 pb-8"></div>
+            <div id="history-list" class="hidden flex flex-col gap-3 pb-8"></div>
+        </div>
+
+        <!-- ===============================================================
+             VISTA 3: HIIT (TIMER RESPONSIVE + PROTOCOLS)
+             =============================================================== -->
+        <div id="view-hiit" class="main-view absolute inset-0 flex flex-col bg-bg-dark z-50 hidden overflow-hidden pb-nav">
+            <!-- Header HIIT -->
+            <div class="flex items-center p-5 justify-between shrink-0">
+                <button onclick="Nav.to('workout')" class="text-white h-10 w-10 flex items-center justify-center rounded-full bg-surface border border-white/10 hover:bg-white/10 active:scale-90 transition-transform">
+                    <span class="material-symbols-outlined text-xl">arrow_back</span>
+                </button>
+                
+                <!-- PROTOCOL SELECTOR -->
+                <div class="flex-1 flex flex-col items-center justify-center mx-4">
+                    <div class="flex items-center justify-between w-full max-w-[280px]">
+                        <button onclick="HIIT.prevProtocol()" class="p-2 text-white/50 hover:text-white active:scale-90 transition-transform">
+                            <span class="material-symbols-outlined text-3xl">chevron_left</span>
+                        </button>
+                        <div class="flex flex-col items-center">
+                            <h2 id="hiit-protocol-name" class="text-xl font-black uppercase tracking-widest text-white leading-none text-center">SPEED DEMON</h2>
+                            <p id="hiit-protocol-desc" class="text-xs font-bold text-text-dim text-center mt-1 leading-tight max-w-[200px]">Intervalos cortos a máxima potencia.</p>
+                        </div>
+                        <button onclick="HIIT.nextProtocol()" class="p-2 text-white/50 hover:text-white active:scale-90 transition-transform">
+                            <span class="material-symbols-outlined text-3xl">chevron_right</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="w-10"></div> 
+            </div>
+
+            <!-- Contenido Principal -->
+            <div class="flex-1 flex flex-col items-center justify-evenly w-full px-4 min-h-0">
+                
+                <!-- Info Cards -->
+                <div class="flex items-center gap-3 w-full justify-center max-w-sm shrink-0">
+                    <div class="flex flex-1 flex-col items-center bg-surface border border-white/10 py-3 rounded-xl">
+                        <span class="text-xs text-text-dim font-bold uppercase tracking-widest mb-1">BLOQUE</span>
+                        <span id="hiit-round-counter" class="text-xl font-mono font-bold text-white leading-none">1 <span class="text-white/30 text-sm" id="hiit-total-rounds">/ 10</span></span>
+                    </div>
+                    <div class="flex flex-1 flex-col items-center bg-surface border border-white/10 py-3 rounded-xl">
+                        <span class="text-xs text-text-dim font-bold uppercase tracking-widest mb-1">TOTAL</span>
+                        <span id="hiit-total-timer" class="text-xl font-mono font-bold text-white leading-none">00:00</span>
+                    </div>
+                </div>
+
+                <!-- SVG Timer -->
+                <div class="relative w-full max-w-[300px] aspect-square flex items-center justify-center shrink-1 my-2">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                        <circle class="text-white/5" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-width="4"></circle>
+                        <circle id="hiit-svg-circle" class="text-hiit transition-[stroke-dashoffset] duration-300 drop-shadow-[0_0_15px_rgba(249,86,31,0.4)]" cx="50" cy="50" fill="none" r="45" stroke="currentColor" stroke-dasharray="283" stroke-dashoffset="0" stroke-linecap="round" stroke-width="4"></circle>
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                        <p id="hiit-phase" class="text-hiit text-base sm:text-lg font-black tracking-[0.2em] uppercase mb-0">SPRINT</p>
+                        <h1 id="hiit-interval-timer" class="text-[22vw] sm:text-8xl font-mono font-black tracking-tighter text-white tabular-nums leading-none">30</h1>
+                        <div id="hiit-phase-badge" class="px-4 py-1.5 rounded-full bg-hiit/20 border border-hiit/30 mt-3">
+                            <p id="hiit-badge-text" class="text-hiit text-xs font-bold uppercase tracking-wider whitespace-nowrap">A MUERTE</p>
+                        </div>
+                        
+                        <!-- CINTA SPEED GUIDE (MEJORADA) -->
+                        <div id="hiit-speed-box" class="mt-4 px-4 py-2 rounded-lg bg-black/60 border border-white/10 transition-colors duration-300">
+                            <p id="hiit-speed-guide" class="text-white text-sm font-mono font-bold tracking-wider">
+                                CINTA: 18-20 KM/H
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="flex items-center justify-center gap-6 w-full shrink-0">
+                    <button onclick="HIIT.reset()" class="h-14 w-14 rounded-full bg-surface border border-white/10 active:scale-90 transition-transform flex items-center justify-center text-text-dim hover:text-white">
+                        <span class="material-symbols-outlined text-2xl">restart_alt</span>
+                    </button>
+                    
+                    <button id="hiit-btn-main" onclick="HIIT.toggle()" class="h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-hiit text-white shadow-[0_8px_30px_rgba(249,86,31,0.4)] active:scale-95 transition-transform flex items-center justify-center border-4 border-bg-dark">
+                        <span id="hiit-icon-main" class="material-symbols-outlined text-4xl sm:text-5xl">play_arrow</span>
+                    </button>
+
+                    <button onclick="App.finishSession()" class="h-14 w-14 rounded-full bg-surface border border-white/10 active:scale-90 transition-transform flex items-center justify-center text-text-dim hover:text-green-500">
+                        <span class="material-symbols-outlined text-2xl">check</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===============================================================
+         OVERLAY: REST TIMER
+         =============================================================== -->
+    <div id="rest-modal" class="fixed inset-0 z-[100] bg-bg-dark/95 backdrop-blur-xl flex flex-col opacity-0 pointer-events-none transition-opacity duration-300">
+        <header class="relative z-10 flex items-center justify-between px-6 py-6 pt-safe">
+            <button onclick="Rest.minimize()" class="flex items-center justify-center size-10 rounded-full bg-surface border border-white/10 text-white hover:bg-white/10">
+                <span class="material-symbols-outlined">expand_more</span>
+            </button>
+            <h2 class="text-white/80 text-sm font-bold uppercase tracking-widest">DESCANSANDO</h2>
+            <div class="w-10"></div>
+        </header>
+
+        <main class="flex-1 flex flex-col items-center justify-center w-full px-6">
+            <div class="relative w-full max-w-[280px] aspect-square flex items-center justify-center mb-8">
+                <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+                    <circle class="text-surface-light" cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" stroke-width="3"></circle>
+                    <circle id="rest-svg-circle" class="text-primary drop-shadow-[0_0_20px_rgba(188,249,6,0.3)] transition-[stroke-dashoffset] duration-200" cx="50" cy="50" fill="transparent" r="46" stroke="currentColor" stroke-dasharray="289" stroke-dashoffset="0" stroke-linecap="round" stroke-width="3"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="rest-display" class="text-8xl font-mono font-black text-white tracking-tighter tabular-nums">60</span>
+                    <div class="flex items-center gap-2 mt-2 text-primary font-bold bg-primary/10 px-3 py-1 rounded-full">
+                        <span class="material-symbols-outlined text-sm">timer</span>
+                        <span class="text-[10px] uppercase tracking-wider">RESTANTE</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-center gap-3 w-full max-w-sm">
+                <button onclick="Rest.addTime(10)" class="flex-1 h-14 bg-surface border border-white/10 hover:border-primary/50 text-white rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-lg">add</span> 10s
+                </button>
+                <button onclick="Rest.addTime(30)" class="flex-1 h-14 bg-surface border border-white/10 hover:border-primary/50 text-white rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined text-lg">add</span> 30s
+                </button>
+            </div>
+        </main>
+
+        <footer class="relative z-10 p-6 pb-safe w-full flex flex-col gap-4 bg-surface/50 border-t border-white/5 backdrop-blur-md">
+            <div class="flex items-center gap-3 rounded-xl bg-black/40 p-4 border border-white/5">
+                <div class="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface border border-white/10 text-primary">
+                    <span class="material-symbols-outlined text-xl">fitness_center</span>
+                </div>
+                <div class="flex flex-col gap-0.5 overflow-hidden">
+                    <p class="text-primary/70 text-[10px] font-bold uppercase tracking-wider">A CONTINUACIÓN</p>
+                    <p id="rest-next-ex" class="text-white text-sm font-bold leading-tight truncate">Cargando...</p>
+                </div>
+            </div>
+            <button onclick="Rest.stop()" class="w-full h-16 bg-primary text-bg-dark text-lg font-black rounded-xl flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(188,249,6,0.3)] active:scale-98 transition-transform uppercase tracking-wider">
+                A POR ELLO <span class="material-symbols-outlined filled text-2xl">arrow_forward</span>
+            </button>
+        </footer>
+    </div>
+
+    <!-- ===============================================================
+         NAVIGATION BAR
+         =============================================================== -->
+    <nav id="main-nav" class="fixed bottom-0 left-0 right-0 z-40 pb-safe pt-2 px-6 flex justify-between items-end h-[90px] bg-gradient-to-t from-bg-dark via-bg-dark to-transparent pointer-events-none hidden">
+        <div class="absolute bottom-0 inset-x-0 h-[80px] bg-bg-dark/90 backdrop-blur-xl border-t border-white/5 pointer-events-auto"></div>
+
+        <button onclick="Nav.to('workout')" class="nav-item relative z-10 flex flex-col items-center gap-1 text-text-dim w-16 mb-2 pointer-events-auto transition-colors active:text-white">
+            <span class="material-symbols-outlined nav-icon">home</span>
+            <span class="text-[9px] font-bold tracking-widest">HOME</span>
+        </button>
+        
+        <button onclick="Nav.to('plan')" class="nav-item relative z-10 flex flex-col items-center gap-1 text-text-dim w-16 mb-2 pointer-events-auto transition-colors active:text-white">
+            <span class="material-symbols-outlined nav-icon">calendar_today</span>
+            <span class="text-[9px] font-bold tracking-widest">PLAN</span>
+        </button>
+
+        <!-- Botón Flotante Central -->
+        <div class="relative z-50 mb-6 pointer-events-auto">
+            <button onclick="Nav.to('hiit')" class="group bg-hiit text-white h-16 w-16 rounded-full flex items-center justify-center shadow-[0_0_25px_rgba(249,86,31,0.5)] hover:scale-105 active:scale-95 transition-transform border-[4px] border-bg-dark">
+                <span class="material-symbols-outlined text-3xl">sprint</span>
+            </button>
+        </div>
+
+        <button class="nav-item relative z-10 flex flex-col items-center gap-1 text-text-dim w-16 mb-2 pointer-events-auto opacity-50">
+            <span class="material-symbols-outlined nav-icon">bar_chart</span>
+            <span class="text-[9px] font-bold tracking-widest">STATS</span>
+        </button>
+        
+        <button class="nav-item relative z-10 flex flex-col items-center gap-1 text-text-dim w-16 mb-2 pointer-events-auto opacity-50">
+            <span class="material-symbols-outlined nav-icon">person</span>
+            <span class="text-[9px] font-bold tracking-widest">PERFIL</span>
+        </button>
+    </nav>
+
+
+<script>
+/* ===============================================================
+   IRON FLOW DIRECTOR — LOGIC ENGINE v4.0 (Full Cycle & Auto-Select)
+   =============================================================== */
+
+const Voice = {
+  enabled: true,
+  speak: (text) => {
+    if (!Voice.enabled || !window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-ES'; u.rate = 1.1;
+    window.speechSynthesis.speak(u);
+  }
+};
+
+const Util = {
+  now: () => Date.now(),
+  todayStr: () => new Date().toDateString(),
+  slug: (s) => String(s||'').trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '_').slice(0, 80),
+  safeJSONParse: (raw, fallback=null) => { try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
+};
+
+/* --- BASE DE DATOS MAESTRA (PESAS) --- */
+const DB = [
+  { dayId: 1, name: "LUNES: PECHO (EMPUJE A)", focus: "Hammer & Gym80", exercises: [{ name: "Press Inclinado Hammer", brand: "hammer", sets: "2 Aprox + 2 Efectivas", reps: "6-8 Pesadas", note: "Retracción escapular. Baja en 3s." }, { name: "Press Plano Convergente", brand: "techno", sets: "1 Top + 1 Back-off", reps: "Fallo Técnico", note: "Explosivo. Aprieta arriba." }, { name: "Aperturas Contractora", brand: "techno", sets: "3 Series", reps: "12-15", note: "Isometría de 1s al cerrar." }, { name: "Fondos Máquina (Dips)", brand: "gym80", sets: "2 Series al Fallo", reps: "Fallo", note: "Inclina el cuerpo. Codos dentro." }] },
+  { dayId: 2, name: "MARTES: ESPALDA (TRACCIÓN A)", focus: "Amplitud Dorsal", exercises: [{ name: "Jalón Dorsal Ancho", brand: "hammer", sets: "3 Series Pesadas", reps: "8-10", note: "Barra a la clavícula." }, { name: "Remo Unilateral (High Row)", brand: "hammer", sets: "3 Series/Lado", reps: "10-12", note: "Codo a la cadera." }, { name: "Pullover Polea Alta", brand: "techno", sets: "3 Series", reps: "15", note: "Tensión constante." }, { name: "Curl Predicador Máq.", brand: "techno", sets: "3 Series", reps: "10-12", note: "Extensión completa." }] },
+  { dayId: 3, name: "MIÉRCOLES: PIERNA (QUADS)", focus: "Sentadilla Hack", exercises: [{ name: "Extensión Cuádriceps", brand: "techno", sets: "3 Series (Pre-Fatiga)", reps: "15-20", note: "Quema garantizada." }, { name: "Hack Squat Pro", brand: "gym80", sets: "2 Aprox + 1 TOP SET", reps: "6-9 (Top Set)", note: "Baja profundo. RIR 0." }, { name: "Prensa 45º", brand: "hammer", sets: "3 Series", reps: "12-15", note: "Pies juntos y bajos." }, { name: "Gemelo en Prensa", brand: "hammer", sets: "4 Series", reps: "15", note: "Pausa de 2s abajo." }] },
+  { dayId: 4, name: "JUEVES: HOMBRO & TRÍCEPS", focus: "Deltoides 3D", exercises: [{ name: "Press Militar Máquina", brand: "gym80", sets: "3 Series Pesadas", reps: "8-10", note: "Rango completo." }, { name: "Elevaciones Laterales", brand: "gym80", sets: "4 Series", reps: "15-20", note: "Control total." }, { name: "Tríceps Cuerda", brand: "techno", sets: "3 Series", reps: "12-15", note: "Abre la cuerda al final." }, { name: "Press Francés Manc.", brand: "techno", sets: "3 Series", reps: "10-12", note: "Estira bien atrás." }] },
+  { dayId: 5, name: "VIERNES: ESPALDA (DENSIDAD)", focus: "Espesor & Trapecio", exercises: [{ name: "Remo T-Bar (Apoyo)", brand: "gym80", sets: "3 Series Pesadas", reps: "8-10", note: "Retracción antes de tirar." }, { name: "Remo Gironda", brand: "techno", sets: "3 Series", reps: "10-12", note: "Estira al máximo." }, { name: "Pájaros (Posterior)", brand: "techno", sets: "3 Series", reps: "15-20", note: "Aísla el posterior." }, { name: "Curl Martillo", brand: "hammer", sets: "3 Series", reps: "10", note: "Pesado." }] },
+  { dayId: 6, name: "SÁBADO: FEMORAL & GLÚTEO", focus: "Cadena Posterior", exercises: [{ name: "Curl Femoral Tumbado", brand: "techno", sets: "4 Series", reps: "10-12", note: "Cadera pegada." }, { name: "Peso Muerto Rumano", brand: "techno", sets: "3 Series", reps: "10-12", note: "Baja en 3s." }, { name: "Prensa Horizontal (Altos)", brand: "techno", sets: "3 Series", reps: "15-20", note: "Enfoque glúteo." }, { name: "Abdominales Crunch", brand: "techno", sets: "4 Series", reps: "15-20", note: "Expulsa aire." }] },
+  { dayId: 0, name: "DOMINGO: FULL BODY (PARTNER)", focus: "Hypertrophy & Chill", exercises: [{ name: "Extensión Cuádriceps", brand: "techno", sets: "3 Series (Calentamiento)", reps: "15-20", note: "Bombeo inicial." }, { name: "Prensa 45º", brand: "hammer", sets: "3 Series Pesadas", reps: "12-15", note: "Rango completo." }, { name: "Hack Squat", brand: "gym80", sets: "2 Series TOP", reps: "8-10", note: "Profunda y controlada." }, { name: "Jalón al Pecho", brand: "hammer", sets: "3 Series", reps: "10-12", note: "Espalda ancha." }, { name: "Remo en Máquina", brand: "techno", sets: "3 Series", reps: "10-12", note: "Aprieta atrás." }, { name: "Press de Pecho Máq.", brand: "hammer", sets: "3 Series", reps: "10-12", note: "Codos a 45º." }, { name: "Superserie Bíceps/Tríceps", brand: "techno", sets: "3 Series", reps: "12-15", note: "Sin descanso entre brazos." }] }
+];
+const DAILY_PUMP = { name: "FINISHER: BICEP PUMP", brand: "pump", sets: "3 Series Gigantes", reps: "20-25", note: "Sin parar. Bombeo puro." };
+
+/* --- BASE DE DATOS CARDIO (PROTOCOLS) --- */
+const CardioDB = [
+  { id: "speed_demon", name: "SPEED DEMON", desc: "Intervalos cortos explosivos. Quema máxima.", sprint: 30, rest: 90, rounds: 10, speedSprint: "18-20", speedRest: "5-6", speedWarm: "6-8", defaultDay: 1 },
+  { id: "oxygen_debt", name: "OXYGEN DEBT", desc: "Sprints largos. Resistencia anaeróbica.", sprint: 60, rest: 60, rounds: 10, speedSprint: "15-16", speedRest: "5-6", speedWarm: "6-8", defaultDay: 2 },
+  { id: "incline_walk", name: "INCLINE WALKER", desc: "Sin impacto. Pendiente máxima para glúteo.", sprint: 60, rest: 60, rounds: 15, speedSprint: "6-7 (Incline 15)", speedRest: "5 (Incline 15)", speedWarm: "5-6", defaultDay: 3 },
+  { id: "tabata_crush", name: "TABATA CRUSH", desc: "Muy intenso. Protocolo 20s/10s.", sprint: 20, rest: 10, rounds: 16, speedSprint: "20+", speedRest: "0 (Saltar)", speedWarm: "6-8", defaultDay: 4 },
+  { id: "pyramid_run", name: "PYRAMID RUN", desc: "Escalera ascendente y descendente.", sprint: 45, rest: 75, rounds: 12, speedSprint: "16-18", speedRest: "5-6", speedWarm: "6-8", defaultDay: 5 },
+  { id: "steady_state", name: "STEADY STATE", desc: "Ritmo constante medio. Recuperación.", sprint: 300, rest: 0, rounds: 4, speedSprint: "10-12", speedRest: "10-12", speedWarm: "6-8", defaultDay: 6 },
+  { id: "sunday_stroll", name: "SUNDAY STROLL", desc: "Caminar ligero. Recuperación activa.", sprint: 120, rest: 0, rounds: 10, speedSprint: "6 (Incline 2)", speedRest: "6 (Incline 2)", speedWarm: "5-6", defaultDay: 0 }
+];
+
+/* --- DATASTORE --- */
+const DataStore = {
+  P_TODAY: "IF_TODAY2_", P_HIST: "IF_HIST2_",
+  getWeightsSessionId: () => localStorage.getItem("IF_ACTIVE_WEIGHTS_SESSION_ID"),
+  newWeightsSessionId: () => { const id = String(Util.now()); localStorage.setItem("IF_ACTIVE_WEIGHTS_SESSION_ID", id); return id; },
+  keyToday: (exName, setIndex) => `${DataStore.P_TODAY}${DataStore.getWeightsSessionId() || DataStore.newWeightsSessionId()}_${Util.slug(exName)}_${setIndex}`,
+  saveDraftToday: (exName, setIndex, kg, rpe) => { try { const sid = DataStore.getWeightsSessionId() || DataStore.newWeightsSessionId(); const obj = { v: 2, sessionId: sid, ts: Util.now(), dateISO: new Date().toISOString(), exName, exSlug: Util.slug(exName), setIndex, kg: (kg??"").toString(), rpe: (rpe??"").toString() }; localStorage.setItem(DataStore.keyToday(exName, setIndex), JSON.stringify(obj)); } catch {} },
+  getToday: (exName, setIndex) => Util.safeJSONParse(localStorage.getItem(DataStore.keyToday(exName, setIndex))),
+  getHistoryLatest: (exName, setIndex) => {
+    const slug = Util.slug(exName); let best = null;
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i); if (!k || !k.startsWith(DataStore.P_HIST)) continue;
+      const parts = k.split("_"); if (parts[parts.length-2] !== slug) continue; if (String(setIndex) !== String(parts[parts.length-1])) continue;
+      const obj = Util.safeJSONParse(localStorage.getItem(k)); if (!obj) continue;
+      if (!best || (obj.ts||0) > (best.ts||0)) best = obj;
+    }
+    return best;
+  },
+  getAllHistory: () => { const items = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(DataStore.P_HIST)) { const obj = Util.safeJSONParse(localStorage.getItem(k)); if (obj) items.push(obj); } } return items.sort((a,b) => b.ts - a.ts); },
+  commitTodayToHistory: (exercises, meta) => { const sid = DataStore.getWeightsSessionId(); if (!sid) return; exercises.forEach(ex => { const numSets = DataStore.calcNumSets(ex.sets); for (let i=0; i<numSets; i++) { const today = DataStore.getToday(ex.name, i); if (!today) continue; const kg = (today.kg??"").toString().trim(); const rpe = (today.rpe??"").toString().trim(); if (!kg && !rpe) continue; const ts = today.ts || Util.now(); const histKey = `${DataStore.P_HIST}${ts}_${Util.slug(ex.name)}_${i}`; const payload = { ...today, dayId: meta.dayId, dayName: meta.dayName }; localStorage.setItem(histKey, JSON.stringify(payload)); } }); DataStore.clearTodaySession(); },
+  clearTodaySession: () => { const sid = DataStore.getWeightsSessionId(); if (!sid) return; const prefix = `${DataStore.P_TODAY}${sid}_`; const toDelete = []; for (let i=0; i<localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith(prefix)) toDelete.push(k); } toDelete.forEach(k => localStorage.removeItem(k)); },
+  clearAllTodayAnySession: () => { const toDelete = []; for(let i=0; i<localStorage.length; i++) { const k=localStorage.key(i); if(k && k.startsWith(DataStore.P_TODAY)) toDelete.push(k); } toDelete.forEach(k=>localStorage.removeItem(k)); },
+  calcNumSets: (setStr) => { if(!setStr) return 3; if(setStr.includes("2 Aprox")) return 4; if(setStr.includes("1 Top")) return 2; const match = setStr.match(/\d+/); return match ? parseInt(match[0], 10) : 3; }
+};
+
+/* --- WAKE LOCK --- */
+const ScreenLock = {
+  wakeLock: null,
+  videoElement: null,
+  init: () => {
+    if (ScreenLock.videoElement) return;
+    const video = document.createElement('video');
+    video.setAttribute('playsinline', ''); video.setAttribute('loop', ''); video.setAttribute('muted', '');
+    video.style.opacity = '0'; video.style.position = 'absolute'; video.style.pointerEvents = 'none'; video.style.zIndex = '-1';
+    video.src = "data:video/mp4;base64,AAAAHGZ0eXBNNEVAAAAAAzoAR2lzb21pc28yYXZjMQAAAAhmcmVlAAAGF21kYXQAAAGzBgX//5lYzdmZ18uP2tsbXZuIGltYWdlL2pwZwAAAHsidCI6MX0AAAGqYXJtbwAAACh2aWRlVIDYXJtbwAAAAAAABQAABagAAAAAAAAAAAAAAABAAAAGW1ldGEAAAAAAAAAIWhkbHIAAAAAAAAAAG1kaXJhcHBsAAAAAAAAAAAAAAAtaWxzdAAAACVpdHVuAAAAAHt0fToxAAAAcHJlbQAAAAB7dH06MQAAAAAAADhjbXZkYXRvbQAAAAhjbXZkAAAAABh0cmFtAAAAAHRyYW0AAAAAAB10cmF1AAAAAHRyYXUAAAAAAAh0cmE3AAAAAHRyYTcAAAAAAAh0cmExAAAAAHRyYTEAAAAAAAh0cmEzAAAAAHRyYTMAAAAAAAh0cmEyAAAAAHRyYTIAAAAAAAh0cmE2AAAAAHRyYTYAAAAAAAh0cmE1AAAAAHRyYTUAAAAAAAh0cmE0AAAAAHRyYTQAAAAAAAh0cmE4AAAAAHRyYTgAAAAAAAh0cmE9";
+    document.body.appendChild(video);
+    ScreenLock.videoElement = video;
+    document.addEventListener("visibilitychange", async () => {
+        if (ScreenLock.wakeLock !== null && document.visibilityState === "visible") ScreenLock.request();
+    });
+  },
+  request: async () => {
+    if ("wakeLock" in navigator) { try { ScreenLock.wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {} }
+    if (ScreenLock.videoElement) { try { ScreenLock.videoElement.play(); } catch(e) {} }
+  },
+  release: async () => {
+    if (ScreenLock.wakeLock) { await ScreenLock.wakeLock.release(); ScreenLock.wakeLock = null; }
+    if (ScreenLock.videoElement) ScreenLock.videoElement.pause();
+  }
+};
+
+/* --- APP CONTROLLER --- */
+const App = {
+  dayIdx: new Date().getDay(),
+  selectedDayIdx: new Date().getDay(),
+  weightsStatus: "ready", 
+  startTime: null,
+  timerInt: null,
+  historyMode: false,
+
+  init: () => {
+    const todayStr = Util.todayStr();
+    const lastDate = localStorage.getItem("IF_SESSION_DATE");
+    if (lastDate !== todayStr) {
+      DataStore.clearAllTodayAnySession(); localStorage.setItem("IF_SESSION_DATE", todayStr); localStorage.setItem("IF_WEIGHTS_STATUS", "ready"); localStorage.setItem("IF_HIIT_STATUS", "ready"); localStorage.removeItem("IF_START_TIME"); localStorage.removeItem("IF_ACTIVE_WEIGHTS_SESSION_ID"); HIIT.hardResetSilent(); App.weightsStatus = "ready";
+    } else {
+      App.weightsStatus = localStorage.getItem("IF_WEIGHTS_STATUS") || "ready";
+      if (App.weightsStatus === "active") {
+        const savedStart = localStorage.getItem("IF_START_TIME");
+        if (savedStart) { App.startTime = parseInt(savedStart, 10); App.resumeTimer(); ScreenLock.init(); ScreenLock.request(); App.setLiveDot("active"); }
+      }
+      if (App.weightsStatus === "finished") App.setLiveDot("finished");
+    }
+    App.renderPlan(); HIIT.restore(); App.loadWorkout(App.selectedDayIdx); App.attachAutosave();
+  },
+
+  enterSystem: () => {
+    ScreenLock.init(); ScreenLock.request();
+    document.getElementById("welcome-screen").classList.add("-translate-y-full");
+    document.getElementById("app-header").classList.remove("hidden");
+    document.getElementById("main-nav").classList.remove("hidden");
+    document.getElementById("main-nav").classList.add("flex");
+    Nav.to("workout");
+  },
+
+  setLiveDot: (mode) => {
+    const dot = document.getElementById("live-dot"); const badge = document.getElementById("global-timer");
+    dot.className = "w-2 h-2 rounded-full transition-colors duration-300"; badge.classList.remove("text-primary", "text-green-500", "text-white/90");
+    if (mode === "active") { dot.classList.add("bg-primary", "animate-pulse"); badge.classList.add("text-primary"); }
+    else if (mode === "finished") { dot.classList.add("bg-green-500"); badge.classList.add("text-green-500"); }
+    else { dot.classList.add("bg-gray-600"); badge.classList.add("text-white/90"); }
+  },
+
+  startSession: () => {
+    App.weightsStatus = "active"; localStorage.setItem("IF_WEIGHTS_STATUS", "active"); DataStore.newWeightsSessionId();
+    App.startTime = Util.now(); localStorage.setItem("IF_START_TIME", String(App.startTime));
+    ScreenLock.init(); ScreenLock.request();
+    App.resumeTimer(); App.setLiveDot("active"); Voice.speak("Entrenamiento iniciado."); App.loadWorkout(App.selectedDayIdx);
+  },
+
+  resumeTimer: () => {
+    if (App.timerInt) clearInterval(App.timerInt);
+    App.timerInt = setInterval(() => {
+      const diff = Math.floor((Util.now() - (App.startTime || Util.now())) / 1000); const m = Math.floor(diff / 60); const s = diff % 60;
+      document.getElementById("global-timer").innerText = `${m<10?"0"+m:m}:${s<10?"0"+s:s}`;
+    }, 1000);
+  },
+
+  finishSession: () => {
+    if (Nav.current === "hiit") { App.finishHIIT(); return; }
+    if (!confirm("¿Finalizar PESAS y guardar datos?")) return;
+    clearInterval(App.timerInt); App.timerInt = null; localStorage.removeItem("IF_START_TIME");
+    const data = DB.find(d => d.dayId === App.selectedDayIdx) || DB[0];
+    let allEx = [...data.exercises]; if (data.exercises.length > 0) allEx.push(DAILY_PUMP);
+    DataStore.commitTodayToHistory(allEx, { dayId: data.dayId, dayName: data.name });
+    App.weightsStatus = "finished"; localStorage.setItem("IF_WEIGHTS_STATUS", "finished");
+    App.setLiveDot("finished"); if (!HIIT.active) ScreenLock.release();
+    Voice.speak("Entrenamiento guardado."); App.loadWorkout(App.selectedDayIdx); window.scrollTo(0,0);
+  },
+
+  finishHIIT: () => {
+    if (!confirm("¿Finalizar CARDIO?")) return;
+    HIIT.saveAsHistory(); HIIT.stop(true);
+    if (App.weightsStatus !== "active") ScreenLock.release();
+    Voice.speak("Cardio guardado."); window.scrollTo(0,0);
+  },
+
+  unlockSession: () => {
+    if (!confirm("¿Desbloquear para nueva sesión?")) return;
+    App.weightsStatus = "ready"; localStorage.setItem("IF_WEIGHTS_STATUS", "ready"); DataStore.newWeightsSessionId(); DataStore.clearTodaySession();
+    clearInterval(App.timerInt); App.timerInt = null; App.startTime = null; localStorage.removeItem("IF_START_TIME");
+    App.setLiveDot(""); document.getElementById("global-timer").innerText = "00:00"; App.loadWorkout(App.selectedDayIdx);
+  },
+
+  loadWorkout: (idx, exercisesOverride) => {
+    const data = DB.find(d => d.dayId === idx) || DB[0];
+    const container = document.getElementById("workout-content");
+    let exercises = exercisesOverride || [...data.exercises];
+    if (!exercisesOverride && data.exercises.length > 0) exercises.push(DAILY_PUMP);
+
+    let html = `
+      <div class="mb-6 border-l-[4px] border-primary pl-4">
+        <h2 class="text-2xl font-display font-black uppercase leading-none text-white">${data.name.split(":")[1] || "DESCANSO"}</h2>
+        <div class="flex items-center gap-2 mt-2">
+            <span class="text-[10px] font-bold text-bg-dark bg-primary px-2 py-0.5 rounded uppercase tracking-wider">${data.focus}</span>
+            <span class="text-xs text-text-dim uppercase tracking-wider font-semibold">${data.name.split(":")[0]}</span>
+        </div>
+      </div>
+    `;
+
+    if (exercises.length === 0) {
+      html += `
+        <div class="bg-surface border border-dashed border-white/10 rounded-2xl p-8 text-center mt-8">
+            <span class="material-symbols-outlined text-4xl text-text-dim mb-4">self_improvement</span>
+            <h3 class="text-white font-bold text-lg">DÍA DE DESCANSO</h3>
+            <p class="text-xs text-text-dim mb-6 mt-2">Recuperación activa recomendada.</p>
+            <button onclick="App.forcePump()" class="text-xs font-bold text-primary border border-primary rounded-lg px-5 py-2.5 uppercase hover:bg-primary/10">Forzar Pump</button>
+        </div>
+      `;
+      document.getElementById("start-box").style.display = "none";
+      container.style.opacity = "1"; container.style.pointerEvents = "auto";
+    } else {
+      exercises.forEach((ex, exIndex) => {
+        const numSets = DataStore.calcNumSets(ex.sets);
+        html += `
+          <div class="relative overflow-hidden rounded-xl bg-surface border border-white/5 p-0 mb-4 transition-all shadow-md" id="card-${exIndex}">
+            <div class="p-4 border-b border-white/5 flex justify-between items-start">
+                <div>
+                    <div class="flex gap-2 mb-1">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-bg-dark bg-white/80 px-1.5 py-0.5 rounded-sm">${ex.brand}</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white leading-tight mb-1">${ex.name}</h3>
+                    <div class="flex gap-2 text-xs text-text-dim font-mono">
+                        <span>${ex.sets}</span> <span class="text-white/20">•</span> <span>${ex.reps}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-black/20 px-4 py-2 border-b border-white/5">
+                <p class="text-[10px] text-primary/90 uppercase font-bold tracking-wide flex gap-1.5 items-center leading-relaxed">
+                    <span class="material-symbols-outlined text-sm">info</span> ${ex.note}
+                </p>
+            </div>
+            <div class="p-4 flex flex-col gap-2" id="sets-${exIndex}">
+                ${App.generateSetRows(ex.name, exIndex, numSets)}
+            </div>
+          </div>
+        `;
+      });
+    }
+    
+    container.innerHTML = html;
+    const startBox = document.getElementById("start-box");
+    const actionsBox = document.getElementById("workout-actions");
+    const finishBanner = document.getElementById("finish-banner");
+    const unlockBtn = document.getElementById("btn-unlock");
+
+    finishBanner.classList.add("hidden"); unlockBtn.classList.add("hidden");
+    if (App.weightsStatus === "ready") {
+        startBox.style.display = "flex"; container.style.opacity = "0.3"; container.style.pointerEvents = "none";
+        actionsBox.classList.remove("flex"); actionsBox.classList.add("hidden");
+    } else if (App.weightsStatus === "active") {
+        startBox.style.display = "none"; container.style.opacity = "1"; container.style.pointerEvents = "auto";
+        actionsBox.classList.remove("hidden"); actionsBox.classList.add("flex");
+    } else { 
+        startBox.style.display = "none"; container.style.opacity = "1"; container.style.pointerEvents = "auto";
+        actionsBox.classList.remove("flex"); actionsBox.classList.add("hidden");
+        finishBanner.classList.remove("hidden"); unlockBtn.classList.remove("hidden");
+        App.restoreInputs(exercises, true);
+    }
+  },
+
+  forcePump: () => {
+    const pumpArr = [DAILY_PUMP]; const originalFind = DB.find;
+    DB.find = () => ({ name: "DOMINGO: PUMP", focus: "Emergency", exercises: pumpArr });
+    App.loadWorkout(0, pumpArr); DB.find = originalFind; document.getElementById("start-box").style.display = "flex";
+  },
+
+  generateSetRows: (exName, exIndex, count) => {
+    let html = "";
+    for(let i=0; i<count; i++) {
+        const hist = DataStore.getHistoryLatest(exName, i);
+        const lastVal = hist && hist.kg ? `${hist.kg}kg` : "-";
+        const statusClass = (App.weightsStatus === "finished") ? "opacity-60 grayscale pointer-events-none" : (i===0 ? "border-primary/50 bg-primary/5" : "border-white/5 opacity-50 pointer-events-none");
+        
+        html += `
+        <div class="flex items-center gap-2 p-2 rounded-lg border ${statusClass} transition-all duration-300" id="row-${exIndex}-${i}">
+            <span class="w-6 text-xs font-bold text-text-dim text-center">#${i+1}</span>
+            <div class="flex-1 grid grid-cols-2 gap-2">
+                <div class="relative">
+                    <label class="absolute -top-1.5 left-2 bg-surface px-1 text-[9px] font-bold text-text-dim uppercase">KG</label>
+                    <div class="absolute right-2 top-2 text-[9px] font-mono text-primary font-bold">${lastVal}</div>
+                    <input type="number" id="kg-${exIndex}-${i}" placeholder="-" inputmode="decimal" class="w-full h-10 bg-bg-dark border border-white/10 rounded text-center font-mono text-lg font-bold py-1 focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder-white/10"
+                        data-exname="${encodeURIComponent(exName)}" data-exidx="${exIndex}" data-setidx="${i}">
+                </div>
+                <div class="relative">
+                    <label class="absolute -top-1.5 left-2 bg-surface px-1 text-[9px] font-bold text-text-dim uppercase">RPE</label>
+                    <input type="number" id="rpe-${exIndex}-${i}" placeholder="-" inputmode="decimal" class="w-full h-10 bg-bg-dark border border-white/10 rounded text-center font-mono text-lg font-bold py-1 focus:border-primary focus:ring-1 focus:ring-primary text-white placeholder-white/10"
+                        data-exname="${encodeURIComponent(exName)}" data-exidx="${exIndex}" data-setidx="${i}">
+                </div>
+            </div>
+            <button id="btn-${exIndex}-${i}" onclick="SetManager.handleSet(decodeURIComponent('${encodeURIComponent(exName)}'), ${exIndex}, ${i}, ${count})" class="h-10 w-10 rounded flex items-center justify-center bg-white/5 border border-white/10 text-white hover:bg-primary hover:text-black hover:border-primary transition-colors active:scale-95">
+                <span class="material-symbols-outlined text-xl">check</span>
+            </button>
+        </div>
+        `;
+    }
+    return html;
+  },
+
+  restoreInputs: (exercises, readOnly=false) => {
+    exercises.forEach((ex, exIdx) => {
+      const numSets = DataStore.calcNumSets(ex.sets);
+      for(let i=0; i<numSets; i++) {
+        const val = readOnly ? DataStore.getHistoryLatest(ex.name, i) : DataStore.getToday(ex.name, i);
+        if(!val) continue;
+        const kgEl = document.getElementById(`kg-${exIdx}-${i}`);
+        const rpeEl = document.getElementById(`rpe-${exIdx}-${i}`);
+        const row = document.getElementById(`row-${exIdx}-${i}`);
+        const btn = document.getElementById(`btn-${exIdx}-${i}`);
+        if(kgEl && val.kg) kgEl.value = val.kg;
+        if(rpeEl && val.rpe) rpeEl.value = val.rpe;
+        if(readOnly && row) {
+            row.className = "flex items-center gap-2 p-2 rounded-lg border border-white/5 opacity-60 grayscale pointer-events-none";
+            if(kgEl) kgEl.disabled = true; if(rpeEl) rpeEl.disabled = true;
+            if(btn) { btn.innerHTML = '<span class="material-symbols-outlined text-lg">lock</span>'; }
+        }
+      }
+    });
+  },
+
+  renderPlan: () => {
+    const list = document.getElementById("plan-list");
+    const days = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    
+    // Mapeo de imágenes solicitado
+    const bgImages = {
+        1: "day1_chest.jpg",
+        2: "day2_back_width.jpg",
+        3: "day3_quads.jpg",
+        4: "day4_shoulders.jpg",
+        5: "day5_back_thick.jpg",
+        6: "day6_hamstrings.jpg",
+        0: "day0_rest.jpg"
+    };
+
+    let html = "";
+    
+    const progressEl = document.getElementById("week-progress-bar");
+    const progressTxt = document.getElementById("week-progress-text");
+    const progressPct = ((App.dayIdx || 7) / 7) * 100;
+    progressEl.style.width = `${progressPct}%`; progressTxt.innerText = `${App.dayIdx}/7`;
+
+    [1,2,3,4,5,6,0].forEach(d => {
+        const r = DB.find(x => x.dayId === d);
+        const isToday = d === App.dayIdx;
+        const isPast = (d < App.dayIdx && d !== 0) || (App.dayIdx === 0 && d !== 0);
+        const bgUrl = bgImages[d] || "";
+
+        // Clases base para el contenedor (ahora con imagen)
+        let containerClass = "group relative w-full h-[120px] rounded-2xl overflow-hidden transition-all duration-300 shadow-md";
+        let overlayClass = "absolute inset-0 z-0";
+        let contentClass = "relative z-10 h-full w-full flex items-center justify-between px-5";
+        
+        // Estado visual según el día
+        let borderClass = "border border-transparent";
+        let imageStyleClass = "w-full h-full object-cover transition-transform duration-700 group-hover:scale-105";
+        let iconHtml = '';
+
+        if (isToday) {
+            // DÍA ACTUAL: Borde neón, imagen normal
+            borderClass = "border-2 border-primary shadow-[0_0_20px_rgba(188,249,6,0.3)]";
+            iconHtml = `<div class="bg-primary text-bg-dark rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-widest shadow-lg">HOY</div>`;
+        } else if (isPast) {
+            // DÍAS PASADOS: Grayscale, imagen un poco más oscura
+            imageStyleClass += " grayscale opacity-60";
+            borderClass = "border border-white/5 opacity-80";
+            iconHtml = `<span class="material-symbols-outlined text-primary text-2xl drop-shadow-md">check_circle</span>`;
+        } else {
+            // DÍAS FUTUROS: Imagen normal pero un poco dim
+            imageStyleClass += " opacity-80";
+            borderClass = "border border-white/5";
+        }
+
+        html += `
+        <div class="${containerClass} ${borderClass}" onclick="App.switchDay(${d})">
+            <!-- Capa Imagen Fondo -->
+            <div class="${overlayClass}">
+                <img src="${bgUrl}" class="${imageStyleClass}" onerror="this.style.display='none'">
+                <!-- Degradado para legibilidad (Negro solido izq -> transparente der) -->
+                <div class="absolute inset-0 bg-gradient-to-r from-bg-dark via-bg-dark/80 to-transparent"></div>
+            </div>
+
+            <!-- Capa Contenido Texto -->
+            <div class="${contentClass}">
+                <div class="flex flex-col justify-center h-full">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-black text-primary uppercase tracking-wider">${days[d].substring(0,3)}</span>
+                        ${iconHtml}
+                    </div>
+                    
+                    <h3 class="text-2xl font-black text-white italic uppercase leading-none tracking-tighter drop-shadow-lg max-w-[80%]">
+                        ${r.name.split(":")[1] || "DESCANSO"}
+                    </h3>
+                    
+                    <div class="mt-1 flex items-center gap-2">
+                         <div class="h-0.5 w-4 bg-primary rounded-full"></div>
+                         <p class="text-[10px] text-white/80 font-bold uppercase tracking-widest shadow-black drop-shadow-md">
+                            ${r.focus}
+                         </p>
+                    </div>
+                </div>
+
+                ${!isPast && !isToday ? `
+                <div class="h-10 w-10 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center border border-white/10 group-active:scale-95 transition-transform">
+                    <span class="material-symbols-outlined text-white text-2xl">chevron_right</span>
+                </div>` : ''}
+                
+                ${isToday ? `
+                <div class="bg-primary text-bg-dark h-10 w-10 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(188,249,6,0.5)] animate-pulse">
+                    <span class="material-symbols-outlined text-2xl">play_arrow</span>
+                </div>` : ''}
+            </div>
+        </div>`;
+    });
+    list.innerHTML = html;
+  },
+
+  renderHistoryList: () => {
+    const items = DataStore.getAllHistory();
+    const container = document.getElementById("history-list");
+    if(items.length === 0) { container.innerHTML = `<div class="text-center p-8 text-text-dim text-sm">NO HAY REGISTROS</div>`; return; }
+    let html = "";
+    items.forEach(item => {
+        const dateStr = item.dateISO ? new Date(item.dateISO).toLocaleDateString() : "";
+        html += `
+        <div class="bg-surface border border-white/5 rounded-xl p-3 flex justify-between items-center">
+            <div>
+                <p class="text-[9px] text-primary font-bold uppercase mb-0.5">${dateStr}</p>
+                <h4 class="text-sm font-bold text-white leading-tight">${item.exName}</h4>
+            </div>
+            <div class="text-right min-w-[70px]">
+                <p class="text-lg font-mono font-bold text-white">${item.kg} <span class="text-[10px] text-text-dim">kg</span></p>
+                ${item.rpe ? `<p class="text-[10px] text-text-dim">RPE ${item.rpe}</p>` : ''}
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+  },
+
+  switchDay: (d) => {
+    if (App.weightsStatus === "active" && d !== App.selectedDayIdx) { if(!confirm("¿Abandonar sesión activa?")) return; App.unlockSession(); }
+    App.selectedDayIdx = d; App.loadWorkout(d); Nav.to("workout");
+  },
+
+  toggleHistoryMode: () => {
+    App.historyMode = !App.historyMode;
+    const pList = document.getElementById("plan-list"); const hList = document.getElementById("history-list");
+    const label = document.getElementById("btn-hist-text"); const icon = document.getElementById("btn-hist-label");
+    const progress = document.getElementById("plan-progress-container");
+    if (App.historyMode) {
+        pList.classList.add("hidden"); hList.classList.remove("hidden"); progress.classList.add("hidden");
+        label.innerText = "PLAN"; icon.innerText = "calendar_today"; App.renderHistoryList();
+    } else {
+        pList.classList.remove("hidden"); hList.classList.add("hidden"); progress.classList.remove("hidden");
+        label.innerText = "HISTORIAL"; icon.innerText = "history";
+    }
+  },
+
+  attachAutosave: () => {
+    const c = document.getElementById("workout-content"); if(!c || c.__bound) return; c.__bound = true;
+    c.addEventListener("input", (ev) => {
+        if(ev.target.tagName === "INPUT" && App.weightsStatus === "active") {
+            const el = ev.target;
+            DataStore.saveDraftToday(decodeURIComponent(el.dataset.exname), parseInt(el.dataset.setidx), document.getElementById(`kg-${el.dataset.exidx}-${el.dataset.setidx}`).value, document.getElementById(`rpe-${el.dataset.exidx}-${el.dataset.setidx}`).value);
+        }
+    });
+  }
+};
+
+/* --- SET MANAGER --- */
+const SetManager = {
+  handleSet: (exName, exIdx, setIdx, totalSets) => {
+    if (App.weightsStatus !== "active") return;
+    const kg = document.getElementById(`kg-${exIdx}-${setIdx}`).value; const rpe = document.getElementById(`rpe-${exIdx}-${setIdx}`).value;
+    DataStore.saveDraftToday(exName, setIdx, kg, rpe);
+    if(!kg && !rpe) { alert("Introduce datos"); return; }
+    
+    const row = document.getElementById(`row-${exIdx}-${setIdx}`); const btn = document.getElementById(`btn-${exIdx}-${setIdx}`);
+    row.classList.remove("border-primary/50", "bg-primary/5"); row.classList.add("bg-green-500/10", "border-green-500/30");
+    btn.classList.remove("bg-white/5", "hover:bg-primary"); btn.classList.add("bg-green-500", "text-bg-dark", "border-green-500");
+    btn.onclick = null;
+    document.getElementById(`kg-${exIdx}-${setIdx}`).disabled = true; document.getElementById(`rpe-${exIdx}-${setIdx}`).disabled = true;
+
+    let nextInfo = "Finalizado";
+    if (setIdx + 1 < totalSets) nextInfo = `${exName} - Set ${setIdx + 2}`;
+    else { const nextCard = document.getElementById(`card-${exIdx+1}`); if(nextCard) nextInfo = nextCard.querySelector("h3").innerText; }
+    
+    Rest.start(nextInfo, () => {
+        const nextSetIdx = setIdx + 1;
+        if (nextSetIdx < totalSets) {
+            const nextRow = document.getElementById(`row-${exIdx}-${nextSetIdx}`);
+            nextRow.classList.remove("opacity-50", "pointer-events-none"); nextRow.classList.add("border-primary/50", "bg-primary/5");
+            nextRow.scrollIntoView({behavior: "smooth", block: "center"}); document.getElementById(`kg-${exIdx}-${nextSetIdx}`).focus();
+        } else { document.getElementById(`card-${exIdx}`).classList.add("opacity-60"); }
+    });
+  }
+};
+
+/* --- REST ENGINE --- */
+const Rest = {
+  interval: null, endTime: null, onComplete: null, duration: 60,
+  start: (nextExName, callback) => {
+    Rest.onComplete = callback; Rest.duration = 60; Rest.endTime = Util.now() + (Rest.duration * 1000);
+    document.getElementById("rest-next-ex").innerText = nextExName;
+    document.getElementById("rest-modal").classList.remove("opacity-0", "pointer-events-none");
+    Voice.speak("Descanso."); Rest.loop();
+  },
+  loop: () => {
+    if(Rest.interval) clearInterval(Rest.interval);
+    Rest.interval = setInterval(() => {
+        const remaining = Math.ceil((Rest.endTime - Util.now()) / 1000);
+        document.getElementById("rest-display").innerText = remaining > 0 ? remaining : "0";
+        const circle = document.getElementById("rest-svg-circle");
+        const total = 289; const offset = total - ((remaining / Rest.duration) * total);
+        circle.style.strokeDashoffset = offset;
+        if (remaining <= 5 && remaining > 0) Voice.speak(String(remaining));
+        if (remaining <= 0) { Rest.stop(); if(navigator.vibrate) navigator.vibrate([200,100,200]); }
+    }, 200);
+  },
+  addTime: (secs) => { Rest.endTime += (secs * 1000); Rest.duration += secs; },
+  minimize: () => { document.getElementById("rest-modal").classList.add("opacity-0", "pointer-events-none"); },
+  stop: () => { clearInterval(Rest.interval); document.getElementById("rest-modal").classList.add("opacity-0", "pointer-events-none"); Voice.speak("A entrenar."); if(Rest.onComplete) Rest.onComplete(); }
+};
+
+/* --- HIIT ENGINE V4 (FULL CYCLE: WARMUP -> WORK -> COOLDOWN) --- */
+const HIIT = {
+  active: false, timer: null,
+  protocolIdx: 0,
+  warmupDuration: 180, // 3 mins
+  cooldownDuration: 120, // 2 mins
+  endTime: null, totalDuration: 0,
+
+  init: () => {
+    // Auto-select based on day
+    const day = new Date().getDay();
+    const recommended = CardioDB.findIndex(p => p.defaultDay === day);
+    HIIT.protocolIdx = recommended !== -1 ? recommended : 0;
+    HIIT.renderProtocolInfo();
+  },
+
+  nextProtocol: () => {
+    if (HIIT.active) return;
+    HIIT.protocolIdx = (HIIT.protocolIdx + 1) % CardioDB.length;
+    HIIT.renderProtocolInfo();
+  },
+
+  prevProtocol: () => {
+    if (HIIT.active) return;
+    HIIT.protocolIdx = (HIIT.protocolIdx - 1 + CardioDB.length) % CardioDB.length;
+    HIIT.renderProtocolInfo();
+  },
+
+  renderProtocolInfo: () => {
+    const p = CardioDB[HIIT.protocolIdx];
+    document.getElementById("hiit-protocol-name").innerText = p.name;
+    document.getElementById("hiit-protocol-desc").innerText = p.desc;
+    document.getElementById("hiit-interval-timer").innerText = p.sprint;
+    document.getElementById("hiit-total-rounds").innerText = `/ ${p.rounds}`;
+    document.getElementById("hiit-total-timer").innerText = "00:00";
+    
+    // Reset visual state
+    document.getElementById("hiit-phase").innerText = "READY";
+    document.getElementById("hiit-phase").className = "text-text-dim text-base sm:text-lg font-black tracking-[0.2em] uppercase mb-0";
+    document.getElementById("hiit-phase-badge").className = "px-4 py-1.5 rounded-full bg-surface border border-white/10 mt-3";
+    document.getElementById("hiit-badge-text").innerText = "TAP PLAY";
+    document.getElementById("hiit-badge-text").className = "text-text-dim text-xs font-bold uppercase tracking-wider whitespace-nowrap";
+    document.getElementById("hiit-speed-guide").innerText = "ESPERANDO...";
+    document.getElementById("hiit-speed-box").className = "mt-4 px-4 py-2 rounded-lg bg-surface border border-white/10 transition-colors duration-300";
+  },
+  
+  toggle: () => {
+    const btn = document.getElementById("hiit-btn-main"); const icon = document.getElementById("hiit-icon-main");
+    if (HIIT.active) {
+        HIIT.stop(false); return;
+    }
+    if(App.weightsStatus !== "active" && !confirm("Pesas no activas. ¿Cardio?")) return;
+    
+    HIIT.active = true;
+    const p = CardioDB[HIIT.protocolIdx];
+    
+    // Calc total time: Warmup + (Rounds * (Sprint+Rest)) + Cooldown
+    const mainBlock = (p.sprint + p.rest) * p.rounds;
+    const sessionDuration = HIIT.warmupDuration + mainBlock + HIIT.cooldownDuration;
+    
+    HIIT.totalDuration = sessionDuration;
+    HIIT.endTime = Util.now() + (sessionDuration * 1000);
+
+    localStorage.setItem("IF_HIIT_STATUS", "active"); 
+    localStorage.setItem("IF_HIIT_ACTIVE", "1");
+    localStorage.setItem("IF_HIIT_START", String(Util.now()));
+    localStorage.setItem("IF_HIIT_END", String(HIIT.endTime));
+    localStorage.setItem("IF_HIIT_PROTO", String(HIIT.protocolIdx));
+
+    icon.innerText = "pause"; btn.classList.replace("bg-hiit", "bg-white"); btn.classList.replace("text-white", "text-hiit");
+    
+    ScreenLock.init(); ScreenLock.request();
+    Voice.speak("Calentamiento iniciado. 3 minutos."); 
+    HIIT.loop();
+  },
+
+  loop: () => {
+    if (HIIT.timer) clearInterval(HIIT.timer);
+    let lastPhase = "";
+
+    HIIT.timer = setInterval(() => {
+        const now = Util.now();
+        const timeLeft = Math.max(0, Math.ceil((HIIT.endTime - now) / 1000));
+        
+        const m = Math.floor(timeLeft / 60); const s = timeLeft % 60;
+        document.getElementById("hiit-total-timer").innerText = `${m}:${s<10?"0"+s:s}`;
+
+        const p = CardioDB[HIIT.protocolIdx];
+        const elapsedTotal = HIIT.totalDuration - timeLeft;
+        
+        let currentPhase, phaseTime, phaseMax, phaseName, badgeText, badgeColor, speedGuide, boxColor;
+        const svgCircle = document.getElementById("hiit-svg-circle");
+        const badgeEl = document.getElementById("hiit-phase-badge");
+        const phaseTitle = document.getElementById("hiit-phase");
+        const speedBox = document.getElementById("hiit-speed-box");
+
+        // PHASE LOGIC
+        if (elapsedTotal < HIIT.warmupDuration) {
+            // WARMUP
+            currentPhase = "WARMUP";
+            phaseMax = HIIT.warmupDuration;
+            phaseTime = HIIT.warmupDuration - elapsedTotal;
+            phaseName = "CALENTAMIENTO";
+            badgeText = "PREPARAR";
+            badgeColor = "text-warmup"; 
+            boxColor = "bg-warmup/20 border-warmup/50";
+            speedGuide = p.speedWarm;
+            
+            svgCircle.classList.remove("text-hiit", "text-primary", "text-cooldown"); svgCircle.classList.add("text-warmup");
+            phaseTitle.className = `text-warmup text-base sm:text-lg font-black tracking-[0.2em] uppercase mb-0`;
+            badgeEl.className = `px-4 py-1.5 rounded-full bg-warmup/20 border border-warmup/30 mt-3`;
+            document.getElementById("hiit-round-counter").innerText = "WARM UP";
+
+        } else if (elapsedTotal < (HIIT.totalDuration - HIIT.cooldownDuration)) {
+            // INTERVALS
+            const elapsedIntervals = elapsedTotal - HIIT.warmupDuration;
+            const cycleLen = p.sprint + p.rest;
+            const cyclePos = elapsedIntervals % cycleLen;
+            const currentRound = Math.min(p.rounds, Math.floor(elapsedIntervals / cycleLen) + 1);
+
+            document.getElementById("hiit-round-counter").innerHTML = `${currentRound} <span class="text-white/30 text-sm">/ ${p.rounds}</span>`;
+
+            if (cyclePos < p.sprint) {
+                // SPRINT
+                currentPhase = "SPRINT";
+                phaseMax = p.sprint;
+                phaseTime = p.sprint - cyclePos;
+                phaseName = "SPRINT";
+                badgeText = "A MUERTE";
+                boxColor = "bg-danger/40 border-danger/60";
+                speedGuide = p.speedSprint;
+
+                svgCircle.className = "text-hiit transition-[stroke-dashoffset] duration-300 drop-shadow-[0_0_15px_rgba(249,86,31,0.4)]";
+                phaseTitle.className = `text-hiit text-base sm:text-lg font-black tracking-[0.2em] uppercase mb-0`;
+                badgeEl.className = `px-4 py-1.5 rounded-full bg-hiit/20 border border-hiit/30 mt-3`;
+
+            } else {
+                // REST
+                currentPhase = "REST";
+                phaseMax = p.rest;
+                phaseTime = p.rest - (cyclePos - p.sprint);
+                phaseName = "RECUPERA";
+                badgeText = "CAMINA";
+                boxColor = "bg-primary/20 border-primary/50";
+                speedGuide = p.speedRest;
+
+                svgCircle.className = "text-primary transition-[stroke-dashoffset] duration-300";
+                phaseTitle.className = `text-primary text-base sm:text-lg font-black tracking-[0.2em] uppercase mb-0`;
+                badgeEl.className = `px-4 py-1.5 rounded-full bg-primary/20 border border-primary/30 mt-3`;
+            }
+
+        } else {
+            // COOLDOWN
+            currentPhase = "COOLDOWN";
+            phaseMax = HIIT.cooldownDuration;
+            phaseTime = HIIT.cooldownDuration - (elapsedTotal - (HIIT.totalDuration - HIIT.cooldownDuration));
+            phaseName = "ENFRIAMIENTO";
+            badgeText = "VUELTA A LA CALMA";
+            boxColor = "bg-cooldown/20 border-cooldown/50";
+            speedGuide = "4-5"; // Slow walk
+            
+            svgCircle.className = "text-cooldown transition-[stroke-dashoffset] duration-300";
+            phaseTitle.className = `text-cooldown text-base sm:text-lg font-black tracking-[0.2em] uppercase mb-0`;
+            badgeEl.className = `px-4 py-1.5 rounded-full bg-cooldown/20 border border-cooldown/30 mt-3`;
+            document.getElementById("hiit-round-counter").innerText = "COOL DOWN";
+        }
+
+        // UPDATE UI
+        document.getElementById("hiit-interval-timer").innerText = Math.ceil(phaseTime);
+        document.getElementById("hiit-phase").innerText = phaseName;
+        document.getElementById("hiit-badge-text").innerText = badgeText;
+        document.getElementById("hiit-badge-text").className = `${currentPhase === 'WARMUP' ? 'text-warmup' : currentPhase === 'SPRINT' ? 'text-hiit' : currentPhase === 'REST' ? 'text-primary' : 'text-cooldown'} text-xs font-bold uppercase tracking-wider whitespace-nowrap`;
+        
+        document.getElementById("hiit-speed-guide").innerText = `CINTA: ${speedGuide} KM/H`;
+        speedBox.className = `mt-4 px-4 py-2 rounded-lg transition-colors duration-300 ${boxColor}`;
+
+        const pct = phaseTime / phaseMax;
+        const offset = 283 - (pct * 283); 
+        svgCircle.style.strokeDashoffset = offset;
+
+        // AUDIO CUES
+        if (currentPhase !== lastPhase && lastPhase !== "") {
+            if (currentPhase === "SPRINT") Voice.speak("Sprint.");
+            else if (currentPhase === "REST") Voice.speak("Recupera.");
+            else if (currentPhase === "WARMUP") Voice.speak("Calentamiento.");
+            else if (currentPhase === "COOLDOWN") Voice.speak("Enfriamiento. Camina suave.");
+            if(navigator.vibrate) navigator.vibrate(300);
+        }
+        lastPhase = currentPhase;
+
+        if (timeLeft <= 0) {
+            HIIT.stop(true); Voice.speak("Cardio terminado.");
+        }
+    }, 200);
+  },
+
+  stop: (finished) => {
+    clearInterval(HIIT.timer); HIIT.timer = null; HIIT.active = false;
+    localStorage.removeItem("IF_HIIT_ACTIVE"); localStorage.removeItem("IF_HIIT_END"); localStorage.removeItem("IF_HIIT_PROTO");
+    const icon = document.getElementById("hiit-icon-main"); const btn = document.getElementById("hiit-btn-main");
+    icon.innerText = "play_arrow"; btn.classList.replace("bg-white", "bg-hiit"); btn.classList.replace("text-hiit", "text-white");
+    if(finished) { localStorage.setItem("IF_HIIT_STATUS", "finished"); }
+    HIIT.renderProtocolInfo(); 
+  },
+  reset: () => { if(!confirm("¿Reset Cardio?")) return; HIIT.hardResetSilent(); },
+  hardResetSilent: () => {
+    HIIT.stop(false); localStorage.setItem("IF_HIIT_STATUS", "ready");
+    HIIT.init(); // Re-calc default for day
+    document.getElementById("hiit-svg-circle").style.strokeDashoffset = 0;
+  },
+  saveAsHistory: () => {
+    const ts = Util.now();
+    const pName = CardioDB[HIIT.protocolIdx].name;
+    DataStore.saveDraftToday(`CARDIO: ${pName}`, 0, "DONE", "");
+    const key = `${DataStore.P_HIST}${ts}_cardio_0`; 
+    localStorage.setItem(key, JSON.stringify({ v:2, ts, dateISO: new Date(ts).toISOString(), exName: `CARDIO: ${pName}`, kg: "DONE", rpe:"" }));
+  },
+  restore: () => {
+    const active = localStorage.getItem("IF_HIIT_ACTIVE"); 
+    const end = parseInt(localStorage.getItem("IF_HIIT_END")||"0", 10);
+    const proto = parseInt(localStorage.getItem("IF_HIIT_PROTO")||"0", 10);
+    
+    if (active && end > Util.now()) {
+        HIIT.active = true; HIIT.endTime = end; HIIT.protocolIdx = proto;
+        const p = CardioDB[proto];
+        // Recalc total duration to keep sync
+        HIIT.totalDuration = HIIT.warmupDuration + ((p.sprint + p.rest) * p.rounds) + HIIT.cooldownDuration;
+
+        document.getElementById("hiit-icon-main").innerText = "pause";
+        document.getElementById("hiit-btn-main").classList.replace("bg-hiit", "bg-white"); 
+        document.getElementById("hiit-btn-main").classList.replace("text-white", "text-hiit");
+        HIIT.loop();
+    } else {
+        HIIT.init();
+    }
+  }
+};
+
+/* --- NAVIGATION --- */
+const Nav = {
+  current: "workout",
+  to: (viewId) => {
+    Nav.current = viewId;
+    document.querySelectorAll(".main-view").forEach(v => { v.classList.add("hidden"); v.classList.remove("opacity-100"); v.classList.add("opacity-0"); });
+    const target = document.getElementById(`view-${viewId}`); target.classList.remove("hidden");
+    setTimeout(() => { target.classList.remove("opacity-0"); target.classList.add("opacity-100"); }, 50);
+    document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("text-primary", "text-white"));
+    const icons = document.querySelectorAll(".nav-icon"); icons.forEach(i => i.classList.remove("filled"));
+    if(viewId === 'workout') { document.querySelectorAll(".nav-item")[0].classList.add("text-primary", "text-white"); document.querySelectorAll(".nav-icon")[0].classList.add("filled"); }
+    else if (viewId === 'plan') { document.querySelectorAll(".nav-item")[1].classList.add("text-primary", "text-white"); document.querySelectorAll(".nav-icon")[1].classList.add("filled"); }
+    if(viewId !== 'hiit') window.scrollTo(0,0);
+  }
+};
+
+App.init();
+</script>
+</body>
+</html>
