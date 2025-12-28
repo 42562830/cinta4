@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRON FLOW | System v4.0</title>
+    
+    <!-- TAILWIND CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FONTS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- ICONS -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#bcf906", /* Volt Green */
+                        "bg-dark": "#050505",
+                        "surface": "#0a0c08",
+                        "surface-glass": "rgba(20, 22, 16, 0.7)",
+                        "text-dim": "#666666",
+                        "neon-blue": "#00f0ff",
+                    },
+                    fontFamily: {
+                        "sans": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"]
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)",
+                    },
+                    animation: {
+                        'float': 'float 8s ease-in-out infinite',
+                        'scan': 'scan 4s linear infinite',
+                        'pulse-glow': 'pulseGlow 3s infinite',
+                        'glitch': 'glitch 2s linear infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0) rotateY(12deg) rotateZ(2deg)' },
+                            '50%': { transform: 'translateY(-20px) rotateY(15deg) rotateZ(0deg)' },
+                        },
+                        scan: {
+                            '0%': { top: '0%', opacity: 0 },
+                            '10%': { opacity: 1 },
+                            '90%': { opacity: 1 },
+                            '100%': { top: '100%', opacity: 0 },
+                        },
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 20px rgba(188,249,6,0.1)' },
+                            '50%': { boxShadow: '0 0 50px rgba(188,249,6,0.3)' },
+                        },
+                        glitch: {
+                            '2%, 64%': { transform: 'translate(1px,0) skew(0deg)' },
+                            '4%, 60%': { transform: 'translate(-1px,0) skew(0deg)' },
+                            '62%': { transform: 'translate(0,0) skew(1deg)' },
+                        }
+                    }
+                },
+            },
+        }
+    </script>
+
+    <style>
+        body { 
+            background-color: #050505;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        /* --- FX: NOISE & SCANLINES --- */
+        .noise-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48ZmlsdGVyIGlkPSJnoiPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjY1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2cpIiBvcGFjaXR5PSIwLjAzIi8+PC9zdmc+');
+            pointer-events: none; z-index: 1;
+        }
+        .scanline {
+            width: 100%; height: 2px; background: rgba(188, 249, 6, 0.05);
+            position: fixed; z-index: 999; animation: scanline-anim 8s linear infinite; pointer-events: none;
+        }
+        @keyframes scanline-anim { 0% { top: 0% } 100% { top: 100% } }
+
+        /* --- FX: GLASS PANELS --- */
+        .glass-panel {
+            background: rgba(10, 12, 8, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* --- FX: TECH BORDERS --- */
+        .tech-card {
+            position: relative; transition: all 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .tech-card:hover { border-color: rgba(188,249,6,0.3); background: rgba(188,249,6,0.02); }
+        .corner {
+            position: absolute; width: 6px; height: 6px; border: 1px solid #bcf906; transition: 0.3s; opacity: 0.5;
+        }
+        .c-tl { top: -1px; left: -1px; border-right: 0; border-bottom: 0; }
+        .c-br { bottom: -1px; right: -1px; border-left: 0; border-top: 0; }
+        .tech-card:hover .corner { width: 100%; height: 100%; opacity: 1; }
+    </style>
+</head>
+<body class="selection:bg-primary selection:text-black">
+    
+    <div class="noise-bg"></div>
+    <div class="scanline"></div>
+    <div class="fixed inset-0 bg-grid-pattern opacity-[0.05] z-0 pointer-events-none"></div>
+
+    <!-- NAVBAR -->
+    <nav class="fixed top-0 w-full z-50 glass-panel border-b-0">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="h-8 w-8 bg-primary text-black flex items-center justify-center font-black transform -skew-x-12 shadow-[0_0_15px_#bcf906]">IF</div>
+                <div class="flex flex-col">
+                    <span class="font-display font-bold text-lg tracking-tight leading-none text-white">IRON<span class="text-white/30">FLOW</span></span>
+                    <span class="text-[8px] font-mono text-primary tracking-[0.3em]">SYSTEM_V4</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-6">
+                <div class="hidden md:flex gap-6 text-xs font-mono text-text-dim">
+                    <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span> SERVER_ONLINE</span>
+                    <span>LATENCY: 0ms</span>
+                </div>
+                <a href="https://42562830.github.io/cinta4/entrene6.html" class="flex items-center gap-2 text-xs font-bold text-black bg-primary px-5 py-2.5 hover:bg-white transition-all shadow-[0_0_20px_rgba(188,249,6,0.2)] hover:shadow-[0_0_30px_rgba(188,249,6,0.5)] uppercase tracking-wider">
+                    [ Ejecutar App ]
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header class="relative pt-32 pb-20 lg:pt-40 px-6 min-h-screen flex items-center overflow-hidden z-10">
+        <!-- Glow ambiental -->
+        <div class="absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full pointer-events-none"></div>
+
+        <div class="max-w-7xl mx-auto w-full grid lg:grid-cols-2 gap-16 items-center relative z-20">
+            
+            <!-- LEFT: COPYWRITING -->
+            <div>
+                <div class="inline-flex items-center gap-3 border border-primary/20 bg-primary/5 px-4 py-1.5 mb-8 backdrop-blur-md">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                    </span>
+                    <span class="text-primary text-[10px] font-bold tracking-[0.2em] uppercase font-mono">Protocolo de Hipertrofia</span>
+                </div>
+                
+                <h1 class="text-5xl md:text-7xl lg:text-8xl font-black uppercase leading-[0.85] tracking-tighter text-white mb-8">
+                    LA OBSESIÓN<br/>
+                    HECHA<br/>
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-white animate-glitch block mt-2">SOFTWARE.</span>
+                </h1>
+                
+                <div class="pl-6 border-l-2 border-primary/30 mb-10 space-y-4">
+                    <p class="text-text-dim text-lg leading-relaxed max-w-lg">
+                        Tu libreta es basura. Tus notas del móvil son el caos. 
+                        <strong>Iron Flow</strong> es ingeniería de datos aplicada a tu físico.
+                    </p>
+                    <p class="text-white font-mono text-sm">
+                        > Métricas brutas.<br>
+                        > Sobrecarga progresiva forzada.<br>
+                        > Cero adornos sociales.
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <a href="https://42562830.github.io/cinta4/entrene6.html" class="w-full sm:w-auto px-8 py-5 bg-white text-black font-black text-lg hover:bg-primary transition-colors flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_40px_rgba(188,249,6,0.4)] transform hover:-translate-y-1">
+                        <span class="material-symbols-outlined filled">bolt</span>
+                        INICIAR SISTEMA
+                    </a>
+                    <a href="#features" class="w-full sm:w-auto px-8 py-5 border border-white/10 text-white font-mono font-bold text-xs uppercase tracking-widest hover:bg-white/5 transition-colors flex items-center justify-center">
+                        // Leer Specs
+                    </a>
+                </div>
+            </div>
+
+            <!-- RIGHT: THE SPECTACULAR 3D MOCKUP -->
+            <div class="relative flex justify-center lg:justify-end perspective-1000 mt-12 lg:mt-0">
+                <!-- Phone Frame (CSS Only) -->
+                <div class="relative w-[300px] h-[600px] bg-[#000] border-[6px] border-[#222] rounded-[40px] shadow-2xl overflow-hidden z-20 animate-float shadow-[0_20px_60px_rgba(0,0,0,0.9)]">
+                    
+                    <!-- Screen Reflection -->
+                    <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent z-40 pointer-events-none rounded-[35px]"></div>
+                    <!-- Scanline on Screen -->
+                    <div class="absolute w-full h-1 bg-primary/30 blur-sm z-50 animate-scan"></div>
+                    <!-- Dynamic Island -->
+                    <div class="absolute top-5 left-1/2 -translate-x-1/2 w-24 h-7 bg-black rounded-full z-50 border border-white/10"></div>
+
+                    <!-- APP UI SIMULATION -->
+                    <div class="w-full h-full bg-[#0a0c08] flex flex-col pt-14 px-4 font-sans relative">
+                        <!-- App Header -->
+                        <div class="flex justify-between items-center mb-6">
+                            <div>
+                                <span class="text-[9px] text-primary font-bold uppercase tracking-widest">FASE 1</span>
+                                <h3 class="text-white font-bold text-xl leading-none italic">MI PLAN</h3>
+                            </div>
+                            <div class="h-8 w-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-xs text-text-dim">history</span>
+                            </div>
+                        </div>
+
+                        <!-- Card 1: HOY (Active) -->
+                        <div class="w-full h-[110px] rounded-xl relative overflow-hidden mb-3 border border-primary shadow-[0_0_20px_rgba(188,249,6,0.15)] group">
+                            <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2070&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover opacity-60">
+                            <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+                            <div class="relative z-10 p-4 flex flex-col justify-center h-full">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="text-[10px] font-black bg-primary text-black px-1.5 rounded uppercase">HOY</span>
+                                    <div class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
+                                </div>
+                                <h3 class="text-xl font-black italic text-white leading-none">PECHO</h3>
+                                <p class="text-[9px] text-white/70 font-bold uppercase mt-1">Empuje A • Hammer Strength</p>
+                            </div>
+                        </div>
+
+                        <!-- Card 2: MAÑANA -->
+                        <div class="w-full h-[90px] rounded-xl relative overflow-hidden mb-3 border border-white/5 opacity-50 grayscale">
+                             <img src="https://images.unsplash.com/photo-1605296867304-46d5465a13f1?q=80&w=2070&auto=format&fit=crop" class="absolute inset-0 w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-gradient-to-r from-black via-black/80 to-transparent"></div>
+                            <div class="relative z-10 p-4 flex flex-col justify-center h-full">
+                                <span class="text-[9px] font-bold text-text-dim uppercase mb-1">MAÑANA</span>
+                                <h3 class="text-base font-black italic text-white leading-none">ESPALDA</h3>
+                            </div>
+                        </div>
+
+                        <!-- Stats Strip -->
+                        <div class="mt-auto mb-6 flex gap-2">
+                            <div class="flex-1 bg-white/5 rounded p-2 border border-white/5">
+                                <span class="text-[8px] text-text-dim block">VOLUMEN</span>
+                                <span class="text-xs font-mono text-white">12.4T</span>
+                            </div>
+                            <div class="flex-1 bg-white/5 rounded p-2 border border-white/5">
+                                <span class="text-[8px] text-text-dim block">INTENSIDAD</span>
+                                <span class="text-xs font-mono text-primary">RPE 9</span>
+                            </div>
+                        </div>
+
+                        <!-- Big Button -->
+                        <div class="absolute bottom-8 right-4 h-14 w-14 bg-primary rounded-full flex items-center justify-center text-black shadow-[0_0_20px_#bcf906] animate-pulse-glow">
+                            <span class="material-symbols-outlined text-3xl">play_arrow</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- SECTION: THE PROBLEM (Text Only) -->
+    <section class="py-24 border-y border-white/5 bg-[#080906]">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-8">
+            <div class="md:col-span-1">
+                <h2 class="text-3xl font-black uppercase text-white mb-4">La mayoría <br/><span class="text-text-dim line-through decoration-primary decoration-2">entrena</span>.<br/>Tú <span class="text-primary">compilas</span> datos.</h2>
+            </div>
+            <div class="md:col-span-2 text-text-dim text-lg leading-relaxed space-y-6 font-mono text-sm md:text-base">
+                <p>
+                    <span class="text-primary">></span> Para el usuario promedio, ir al gimnasio es "hacer ejercicio". Para ti, es un proceso de ingeniería. Cada repetición es un dato. Cada descanso es una variable.
+                </p>
+                <p>
+                    <span class="text-primary">></span> Iron Flow elimina la fricción cognitiva. <strong>No piensas, ejecutas.</strong> La app te dice qué peso moviste la semana pasada y cuánto tiempo exacto debes descansar para maximizar la resíntesis de ATP.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: THE ARCHITECTURE (JSON Editor) -->
+    <section id="architecture" class="py-24 px-6 relative overflow-hidden">
+        <div class="max-w-7xl mx-auto">
+            <div class="flex flex-col md:flex-row items-end justify-between mb-16 gap-6">
+                <div>
+                    <span class="text-neon-blue font-mono text-xs font-bold tracking-widest uppercase mb-2 block">[ ARCHITECT_MODE ]</span>
+                    <h2 class="text-4xl md:text-5xl font-black uppercase text-white">Programación<br/>Centralizada</h2>
+                </div>
+                <p class="text-text-dim max-w-md text-xs font-mono border-l border-white/10 pl-4">
+                    > Las rutinas no se crean, se inyectan.<br>
+                    > Define tu macrociclo en JSON.<br>
+                    > Despliega cambios sin tocar la UI.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Visual Code Editor -->
+                <div class="bg-[#050505] border border-white/10 rounded-lg overflow-hidden shadow-2xl relative group transform hover:scale-[1.01] transition-transform duration-500">
+                    <!-- Editor Header -->
+                    <div class="flex items-center gap-4 px-4 py-2 border-b border-white/5 bg-[#0f110c]">
+                        <div class="flex gap-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
+                        </div>
+                        <span class="text-xs font-mono text-text-dim">hypertrophy_config.json</span>
+                    </div>
+                    <!-- Code Content -->
+                    <div class="p-6 font-mono text-xs md:text-sm text-gray-400 overflow-x-auto bg-[#080906]">
+                        <p><span class="text-purple-400">export const</span> <span class="text-white">WEEK_PLAN</span> = [</p>
+                        <p class="pl-4">{</p>
+                        <p class="pl-8"><span class="text-blue-300">day</span>: <span class="text-yellow-300">"MONDAY"</span>,</p>
+                        <p class="pl-8"><span class="text-blue-300">focus</span>: <span class="text-green-300">"CHEST_HEAVY"</span>,</p>
+                        <p class="pl-8"><span class="text-blue-300">exercises</span>: [</p>
+                        <p class="pl-12">{ <span class="text-blue-300">id</span>: <span class="text-white">"press_inc"</span>, <span class="text-blue-300">sets</span>: <span class="text-red-400">"TOP_SET + BACK_OFF"</span> },</p>
+                        <p class="pl-12">{ <span class="text-blue-300">id</span>: <span class="text-white">"fly_machine"</span>, <span class="text-blue-300">technique</span>: <span class="text-red-400">"ISO_HOLD_2S"</span> }</p>
+                        <p class="pl-8">]</p>
+                        <p class="pl-4">},</p>
+                        <p class="pl-4"><span class="text-gray-600">// ... data continues</span></p>
+                        <p>]</p>
+                    </div>
+                    <!-- Editor Footer -->
+                    <div class="px-4 py-2 bg-[#0f110c] border-t border-white/5 flex justify-between text-[10px] font-mono text-text-dim">
+                        <span>Ln 42, Col 12</span>
+                        <span class="text-primary">● PRETTIER: ON</span>
+                    </div>
+                </div>
+
+                <!-- Feature Description -->
+                <div class="space-y-8">
+                    <div class="flex gap-5">
+                        <div class="h-12 w-12 shrink-0 border border-white/10 flex items-center justify-center text-primary bg-primary/5">
+                            <span class="material-symbols-outlined">cloud_upload</span>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-bold text-xl uppercase">Carga Remota</h3>
+                            <p class="text-text-dim text-sm mt-2 leading-relaxed">
+                                ¿Eres entrenador? ¿Te auto-entrenas? Pre-carga todo el mesociclo desde el código. Cuando llegas al gimnasio, la app ya sabe lo que tienes que hacer.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex gap-5">
+                        <div class="h-12 w-12 shrink-0 border border-white/10 flex items-center justify-center text-primary bg-primary/5">
+                            <span class="material-symbols-outlined">tune</span>
+                        </div>
+                        <div>
+                            <h3 class="text-white font-bold text-xl uppercase">Variables en tiempo real</h3>
+                            <p class="text-text-dim text-sm mt-2 leading-relaxed">
+                                Modifica volumen, selección de ejercicios o notas técnicas (ej: "Bajar en 3 segundos") en la base de datos y se reflejará instantáneamente.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION: FEATURES GRID (Glassmorphism) -->
+    <section id="features" class="py-24 px-6 max-w-7xl mx-auto">
+        <div class="text-center mb-16">
+            <span class="text-primary font-mono text-xs font-bold tracking-widest uppercase">Características Premium</span>
+            <h2 class="text-4xl font-display font-black mt-3 text-white">INGENIERÍA DEL DOLOR</h2>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Card 1 -->
+            <div class="tech-card glass-panel p-8 rounded-xl group">
+                <div class="corner c-tl"></div><div class="corner c-br"></div>
+                <span class="material-symbols-outlined text-4xl text-white mb-6 group-hover:text-primary transition-colors">history</span>
+                <h3 class="text-xl font-bold text-white mb-3 uppercase">Memoria de Carga</h3>
+                <p class="text-text-dim text-sm">La app recuerda tu última carga y RPE. Visualiza tu progreso en tiempo real antes de cada serie. Si no superas el número, has fallado.</p>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="tech-card glass-panel p-8 rounded-xl group">
+                <div class="corner c-tl"></div><div class="corner c-br"></div>
+                <span class="material-symbols-outlined text-4xl text-white mb-6 group-hover:text-primary transition-colors">timer</span>
+                <h3 class="text-xl font-bold text-white mb-3 uppercase">Rest Engine</h3>
+                <p class="text-text-dim text-sm">Cronómetros automáticos al marcar una serie. Feedback por voz para avisarte cuando te quedan 10 segundos. No mires Instagram, mira el reloj.</p>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="tech-card glass-panel p-8 rounded-xl group">
+                <div class="corner c-tl"></div><div class="corner c-br"></div>
+                <span class="material-symbols-outlined text-4xl text-white mb-6 group-hover:text-primary transition-colors">lock</span>
+                <h3 class="text-xl font-bold text-white mb-3 uppercase">WakeLock & Focus</h3>
+                <p class="text-text-dim text-sm">La pantalla nunca se apaga mientras entrenas. Interfaz oscura "OLED-Black" para máximo ahorro de energía y cero distracciones.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FINAL CTA -->
+    <section class="py-32 px-6 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-primary/5 opacity-20 bg-[size:50px_50px] [mask-image:radial-gradient(ellipse_at_center,black,transparent)] pointer-events-none"></div>
+        
+        <div class="relative z-10 max-w-4xl mx-auto">
+            <h2 class="text-5xl md:text-8xl font-black text-white uppercase tracking-tighter mb-8 leading-[0.9]">
+                LA MEDIOCRIDAD <br/>
+                <span class="text-primary">HA TERMINADO.</span>
+            </h2>
+            
+            <div class="flex flex-col items-center gap-6">
+                <p class="text-lg text-text-dim max-w-2xl font-mono border border-white/10 bg-black/50 p-4 backdrop-blur-sm">
+                    <span class="text-green-500">✔</span> SYSTEM_STATUS: ONLINE<br>
+                    <span class="text-green-500">✔</span> USER_ACCESS: GRANTED<br>
+                    <span class="text-primary">!</span> COST: 0€ (EL PRECIO ES TU SUDOR)
+                </p>
+                
+                <a href="https://42562830.github.io/cinta4/entrene6.html" class="mt-8 relative px-12 py-6 bg-primary text-black font-black text-xl uppercase tracking-widest hover:scale-105 transition-transform shadow-[0_0_50px_rgba(188,249,6,0.6)] group">
+                    <span class="group-hover:hidden">ACCEDER AL PROTOCOLO</span>
+                    <span class="hidden group-hover:inline">EJECUTAR AHORA_</span>
+                    <div class="absolute inset-0 border-2 border-white mix-blend-overlay"></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="border-t border-white/10 py-12 px-6 bg-[#020202] text-center md:text-left">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center opacity-40 hover:opacity-100 transition-opacity">
+            <div class="mb-4 md:mb-0 flex items-center gap-3">
+                <div class="h-8 w-8 bg-white/10 flex items-center justify-center font-bold text-xs">IF</div>
+                <div>
+                    <span class="block text-xs font-mono text-primary">IRON FLOW SYSTEMS INC.</span>
+                    <span class="block text-[10px] text-text-dim mt-1">BUILT FOR HYPERTROPHY</span>
+                </div>
+            </div>
+            <div class="text-[10px] font-mono text-text-dim flex gap-4">
+                <span>NO COOKIES</span>
+                <span>NO TRACKING</span>
+                <span>JUST LIFTING</span>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
